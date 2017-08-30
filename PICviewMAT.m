@@ -1,4 +1,4 @@
-function PICview(picNum,excludeLines, figNum)
+function FIG=PICviewMAT(FIG, picNum,excludeLines, figNum)
 % File: PICview.m
 % M.Heinz 04Jan2005.  Modified from PSTview.m 
 %
@@ -19,12 +19,16 @@ else
 end
 FIG.fontSize = 8; % used for axis labelling.
 
-PIC.x=loadPic(picNum);
+picSearchString = sprintf('p%04d*.mat', picNum);
+picMFile = dir(picSearchString);
+
+temp=load(picMFile.name);
+PIC.x=temp.data;
 PIC.num=picNum;
 
 [FIG, PIC]=layoutFigure(FIG, PIC);  % *Keep here
 FIG=do_raster(FIG, PIC, excludeLines);     % *Keep here
-do_rate(FIG, PIC, excludeLines);       % *Plot here, calc from Mfile
+FIG=do_rate(FIG, PIC, excludeLines);       % *Plot here, calc from Mfile
 
 return;
 
@@ -34,21 +38,34 @@ function [FIG, PIC]=layoutFigure(FIG, PIC)
 figure_prop_name = {'PaperPositionMode','units','Position'};
 % figure_prop_val =  { 'auto'            ,'inches', [8.7083    2.20    5.8333    4]};
 if FIG.num==100
-	figure_prop_val =  { 'auto'            ,'inches', [0.05    1.0    5.8333    9]};
+	figure_prop_val =  { 'auto' ,'inches', [0.05    1.0    18    9]};
 else
-	figure_prop_val =  { 'auto'            ,'inches', [6    1.0    5.8333    9]};
+	figure_prop_val =  { 'auto' ,'inches', [6    1.0    5.8333    9]};
 end
-FIG.handles.main = figure(FIG.num); clf;
+FIG.handles.main = figure(FIG.num); 
+clf;
 set(gcf,figure_prop_name,figure_prop_val);
 
 NameText=sprintf('picture: %04d; filename: %s', PIC.num,getFileName(PIC.num));
 set(gcf, 'Name', NameText);
 
 % Yshift=0.05;
-rasterXcorner=0.35; rasterYcorner=0.1; rasterWidth=0.6; rasterHeight=0.8;
-rateXcorner=0.07; rateYcorner=rasterYcorner; rateWidth=0.20; rateHeight=rasterHeight;
+rateXcorner=0.05; rateYcorner=0.1; rateWidth=0.10; rateHeight=0.8;
+rasterXcorner=0.2; rasterYcorner=rateYcorner; rasterWidth=0.4; rasterHeight=rateHeight;
 FIG.handles.rate   = subplot('Position',[rateXcorner rateYcorner rateWidth rateHeight]);
 FIG.handles.raster = subplot('Position',[rasterXcorner rasterYcorner rasterWidth rasterHeight]);
+FIG.handles.PrevPicPB=uicontrol('Parent',FIG.num,'Style','pushbutton',...
+    'String','prev picture (<<)','Units','normalized','Position',[0.7 0.1 0.1 0.1],...
+    'Visible','on', 'Backgroundcolor', [.5 .7 .5], 'callback', 'screenDataMAT(''PrevPic_PBcallback'')');
+FIG.handles.NextPicPB=uicontrol('Parent',FIG.num,'Style','pushbutton',...
+    'String','next picture (>>)','Units','normalized','Position',[0.8 0.1 0.1 0.1],...
+    'Visible','on', 'Backgroundcolor', [.5 .7 .5], 'callback', 'screenDataMAT(''NextPic_PBcallback'')');
+
+FIG.handles.BadLineText=uicontrol('Parent',FIG.num,'Style','edit',...
+    'String','add comma/space separated badlines ','Units','normalized','Position',[0.7 0.3 0.2 0.1],...
+    'Visible','on', 'Backgroundcolor', [.5 .7 .5], 'callback', 'screenDataMAT(''Badlines_Editcallback'')');
+
+
 
 titleString = sprintf('picture %s recorded on %s\n%s', ...
                mat2str(PIC.num),...
@@ -82,7 +99,7 @@ set(gca, 'TickDir', 'out');
 return;
 
 %%################################################################################################
-function do_rate(FIG, PIC, excludeLines)
+function FIG=do_rate(FIG, PIC, excludeLines)
 
 PIC=calcRatePerLine(PIC);  % Uses driv=[10,410],spont=[600,1000]
 

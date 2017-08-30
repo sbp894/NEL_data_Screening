@@ -17,16 +17,16 @@ for i=1:length(varargin)
          ADDstring1='';  % Remove TAG requirement
          ADDstring2='';
       else
-         error(sprintf('varargin(%d)="%s" is an unidentified string',i,varargin{i}))
+         error('varargin(%d)="%s" is an unidentified string',i,varargin{i});
       end
    elseif isnumeric(varargin{i})
       if length(varargin{i})==2
          TrackUnitName=varargin{i};
       else
-         error(sprintf('Numeric varargin(%d) is length=%d, MUST BE length=2 [Track,Unit]',i,length(varargin{i})))
+         error('Numeric varargin(%d) is length=%d, MUST BE length=2 [Track,Unit]',i,length(varargin{i}));
       end
    else
-      error(sprintf('varargin(%d) is neither char no numeric'))
+      error('varargin is neither char no numeric');
    end
 end      
    
@@ -49,6 +49,3 @@ end
 picList=picList(~isnan(picList));
 
 return;
-
-
-

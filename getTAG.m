@@ -7,8 +7,8 @@ function TAG=getTAG(filename)
 
 if ~isempty(filename)
    if strcmp(filename(1),'p')
-      ULINEinds=findstr(filename,'_');
-      PERinds=findstr(filename,'.');
+      ULINEinds=strfind(filename,'_');
+      PERinds=strfind(filename,'.');
       
       TAG=filename(max(ULINEinds)+1:min(PERinds)-1);
       return;

@@ -11,7 +11,7 @@ if ~exist('checkRASTER','var')
 end
 
 picList=findPics('*',[TrackNum,UnitNum]);
-BadLinesMat=repmat(struct([]),picList,1);
+BadLinesMat=repmat(struct([]),length(picList),1);
 
 for PICnum=picList
     x=loadPic(PICnum);
@@ -50,7 +50,7 @@ for PICnum=picList
     
     input('Press Enter to move to next PICTURE');
 %     badlines=inputdlg('Enter space-separated bad lines','Data Screening');
-%     badlines=str2num(badlines{:});
+%     badlines=str2double(badlines{:});
 %     if isempty(badlines)
 %         %
 %     else

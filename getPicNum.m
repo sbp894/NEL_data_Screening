@@ -7,8 +7,8 @@ function picNum=getPicNum(filename)
 
 if ~isempty(filename)
    if strcmp(filename(1),'p')
-      INDs=2:min(findstr(filename,'_'))-1;
-      picNum=str2num(filename(INDs));
+      INDs=2:min(strfind(filename,'_'))-1;
+      picNum=str2double(filename(INDs));
       return;
    end
 end

@@ -25,12 +25,20 @@ end
 
 % Only load PICnum if needed
 if isempty(x)
-   x=loadPic(PICnum);
+    fileCur=dir(sprintf('p%04d*',PICnum));
+    [~,~,ext]=fileparts(fileCur.name);
+    
+    if strcmp(ext, '.m')
+        x=loadPic(PICnum);
+    elseif strcmp(ext, '.mat')
+        x=load(fileCur.name);
+        x=x.data;
+    end
 end
 
 % Verify this picture has spike data
 if ~isfield(x,'spikes')
-   disp(sprintf('*****\n   ERROR:  NO SPIKES in PICnum=%d\n*****',PICnum))
+   fprintf('*****\n   ERROR:  NO SPIKES in PICnum=%d\n*****\n',PICnum);
    beep
    SR_sps=NaN;
    lineSRs_sps=[NaN NaN];
