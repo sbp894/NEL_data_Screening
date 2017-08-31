@@ -46,6 +46,7 @@ if isnumeric(varIN)
             ReviewUnitTriggeringMAT();
         end
     end
+    datacursormode(FIG.num);
     
 elseif ischar(varIN)
     subfunName=varIN;
@@ -81,14 +82,23 @@ elseif ischar(varIN)
                     screenDataMAT('NextPic_PBcallback');
                 end
             end
+            datacursormode(FIG.num);
         else
             fprintf('all units are screened for this unit\n');
             close(FIG.num);
         end
         
     elseif strcmp(subfunName, 'Badlines_Editcallback')
-        
+        FIG.badlines(FIG.PICnum).vals=sscanf(get(FIG.handles.BadLineEdit, 'string'), '%d');
+        datacursormode(FIG.num);
     end
+end
+
+if ~ishandle(FIG.num)
+    badLines=FIG.badlines; %#ok<NASGU>
+    save('reviewOUTPUT.mat', 'badLines');
+else 
+    datacursormode(FIG.num);
 end
 
 cd(CodesDir);

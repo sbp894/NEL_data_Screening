@@ -92,7 +92,7 @@ PIC.RatePerLine.driv(dRateExcludeINDs)=NaN;
 sRateExcludeINDs = intersect(excludeLines,1:length(PIC.RatePerLine.spont));
 PIC.RatePerLine.spont(sRateExcludeINDs)=NaN;
 
-fprintf('MEAN DRIV RATE = %.f sp/sec\n',mean(PIC.RatePerLine.driv));
+set(FIG.handles.Comments, 'string', sprintf('MEAN DRIV RATE = %.f sp/sec\n',mean(PIC.RatePerLine.driv)));
 
 subplot(FIG.handles.rate);
 plot(PIC.RatePerLine.driv,1:length(PIC.RatePerLine.driv),'r','LineWidth',2)

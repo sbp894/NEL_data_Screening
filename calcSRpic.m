@@ -38,7 +38,7 @@ end
 
 % Verify this picture has spike data
 if ~isfield(x,'spikes')
-   fprintf('*****\n   ERROR:  NO SPIKES in PICnum=%d\n*****\n',PICnum);
+   set(FIG.handles.Comments, 'string', sprintf('*****\n   ERROR:  NO SPIKES in PICnum=%d\n*****\n',PICnum));
    beep
    SR_sps=NaN;
    lineSRs_sps=[NaN NaN];

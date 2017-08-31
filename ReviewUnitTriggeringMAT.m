@@ -11,17 +11,20 @@ checkRASTER=FIG.checkRASTER;
 fileCur=dir(sprintf('p%04d*',FIG.PICnum));
 x=load(fileCur.name);
 x=x.data;
-fprintf('Picture #: %d, filename: %s\n',FIG.PICnum,fileCur.name);
+nComLines=1;
+FIG.ComStr=sprintf('Picture #: %d, filename: %s',FIG.PICnum,fileCur.name);
 
 if isfield(x.General,'trigger')
-    fprintf('   Trigger: %s\n',upper(x.General.trigger));
+    nComLines=nComLines+1;
+    FIG.ComStr=strcat(FIG.ComStr,  sprintf('\nTrigger: %s',upper(x.General.trigger)));
     if sum(strcmp(deblank(x.General.trigger),{'Poor','Fair'}))
         beep
     end
 end
 
 if isfield(x.General,'comment')
-    fprintf('   Comment: %s\n',upper(x.General.comment));
+    nComLines=nComLines+1;
+    FIG.ComStr=strcat(FIG.ComStr, sprintf('\nComment: %s\n',upper(x.General.comment)));
 end
 
 if isfield(x.General,'run_errors')
@@ -30,7 +33,8 @@ if isfield(x.General,'run_errors')
                 {'In function ''DALinloop_NI_wavfiles'': Input waveform ', ...
                 'has been truncated to fit requested duration. ', ...
                 'has been repeated to fill requested duration. '}))
-            fprintf('   Run_errors: %s\n',x.General.run_errors{i});
+            nComLines=nComLines+1;
+            FIG.ComStr=strcat(FIG.ComStr, sprintf('\nRun_errors: %s\n',x.General.run_errors{i}));
         end
     end
 end
@@ -39,7 +43,8 @@ if checkRASTER
     if ~strcmp('tc',getTAG(getFileName(FIG.PICnum)))
         FIG=PICviewMAT(FIG, FIG.PICnum,'');
         [SR_sps,~,~,~] = PIC_calcSR(FIG.PICnum);
-        fprintf('MEAN SPONT RATE = %.1f sp/sec\n',SR_sps);
+        nComLines=nComLines+1;
+        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nMEAN SPONT RATE = %.1f sp/sec\n',SR_sps));
         beep
     else
         screenDataMAT('NextPic_PBcallback');
@@ -58,5 +63,6 @@ end
 %             BadLinesMat(picList==PICnum).badlines=badlines;
 %         end
 
-
+set(FIG.handles.Comments, 'MAX', nComLines);
+set(FIG.handles.Comments, 'string', FIG.ComStr);
 return;
