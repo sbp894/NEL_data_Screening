@@ -1,11 +1,13 @@
-function ReviewUnitTriggeringMAT
-% function ReviewUnitTriggering(Track,Unit)
+function FIG=ReviewUnitTriggeringMAT(FIG)
+% FIG=ReviewUnitTriggeringMAT(FIG)
+% Created: SP (Aug 2017)
+% Called from screenDataMAT
+% Original function: ReviewUnitTriggering(Track,Unit) 
 % Created: M. Heinz 30Dec2005
-% For: R03
 %
 % Goes through all pictures for a unit and reviews: Triggering, Errors, and
 % comments
-global FIG;
+
 checkRASTER=FIG.checkRASTER;
 
 fileCur=dir(sprintf('p%04d*',FIG.PICnum));
@@ -41,27 +43,18 @@ end
 
 if checkRASTER
     if ~strcmp('tc',getTAG(getFileName(FIG.PICnum)))
-        FIG=PICviewMAT(FIG, FIG.PICnum,'');
+        FIG=PICviewMAT(FIG, FIG.PICnum,'', FIG.num);
         [SR_sps,~,~,~] = PIC_calcSR(FIG.PICnum);
         nComLines=nComLines+1;
         FIG.ComStr=strcat(FIG.ComStr, sprintf('\nMEAN SPONT RATE = %.1f sp/sec\n',SR_sps));
         beep
     else
+        guidata(FIG.num, FIG);
         screenDataMAT('NextPic_PBcallback');
+        FIG=guidata(FIG.num);
     end
 end
 
-%     input('Press Enter to move to next PICTURE');
-
-
-%         badlines=inputdlg('Enter space-separated bad lines','Data Screening');
-%         badlines=str2double(badlines{:});
-%         if isempty(badlines)
-%
-%         else
-%             BadLinesMat(picList==PICnum).PICnum=PICnum;
-%             BadLinesMat(picList==PICnum).badlines=badlines;
-%         end
 
 set(FIG.handles.Comments, 'MAX', nComLines);
 set(FIG.handles.Comments, 'string', FIG.ComStr);
