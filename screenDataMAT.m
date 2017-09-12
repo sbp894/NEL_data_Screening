@@ -148,8 +148,8 @@ end
 
 if ~ishandle(FIG.num)
     if isfield(FIG,'badlines')
-        badLines=FIG.badlines; %#ok<NASGU>
-        save('reviewOUTPUT.mat', 'badLines');
+%         badLines=FIG.badlines; %#ok<NASGU>
+%         save('reviewOUTPUT.mat', 'badLines');
     end
 else
     guidata(FIG.num, FIG);

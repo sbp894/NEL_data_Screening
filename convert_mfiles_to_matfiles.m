@@ -10,7 +10,7 @@ addpath(CodesDir);
 
 % NELDataRepository='R:\Users\Satya\SP\NELData\';
 NELDataRepository='/media/parida/DATAPART1/Matlab/ExpData/NelData/';
-MATDataRepository='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/';
+MATDataRepository='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/test/';
 
 if ~isdir(MATDataRepository)
     mkdir(MATDataRepository);

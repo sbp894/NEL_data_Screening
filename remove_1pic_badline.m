@@ -11,37 +11,35 @@ if ~isfield(badlines,'Done')
         curFile=dir(sprintf('p%04d*',PICnum));
         data=load(curFile.name);
         data=data.data;
-        curBadLines=sort(badlines(PICnum).vals, 'descend');
-        
+%         curBadLines=sort(badlines(PICnum).vals, 'descend');
+        %%         Do not alter the data. Only save the badlines.
         data.Stimuli.bad_lines=badlines(PICnum).vals;
-        data.Stimuli.nlines=data.Stimuli.nlines-length(badlines(PICnum).vals);
-        data.Stimuli.fully_presented_stimuli=data.Stimuli.fully_presented_stimuli-length(badlines(PICnum).vals);
-        data.Stimuli.fully_presented_lines=data.Stimuli.fully_presented_lines-length(badlines(PICnum).vals);
-        
-        for lineVar=1:length(curBadLines)
-            lineNum=curBadLines(lineVar);
-            
-            fldNames=fieldnames(data.Line.attens);
-            for fldVar=1:length(fldNames)
-                data.Line.attens.(fldNames{fldVar})(lineNum,:)=[];
-            end
-            
-            if isfield(data.Line, 'file')
-                data.Line.file(lineNum)=[];
-            end
-            if isfield(data.Line, 'playback_sampling_rate')
-                data.Line.playback_sampling_rate(lineNum)=[];
-            end
-            inds=data.spikes{1}(:,1)==lineNum;
-            if sum(inds)
-                data.spikes{1}(inds,:)=[];
-            end
-        end
+        %         data.Stimuli.nlines=data.Stimuli.nlines-length(badlines(PICnum).vals);
+        %         data.Stimuli.fully_presented_stimuli=data.Stimuli.fully_presented_stimuli-length(badlines(PICnum).vals);
+        %         data.Stimuli.fully_presented_lines=data.Stimuli.fully_presented_lines-length(badlines(PICnum).vals);
+        %
+        %         for lineVar=1:length(curBadLines)
+        %             lineNum=curBadLines(lineVar);
+        %
+        %             fldNames=fieldnames(data.Line.attens);
+        %             for fldVar=1:length(fldNames)
+        %                 data.Line.attens.(fldNames{fldVar})(lineNum,:)=[];
+        %             end
+        %
+        %             if isfield(data.Line, 'file')
+        %                 data.Line.file(lineNum)=[];
+        %             end
+        %             if isfield(data.Line, 'playback_sampling_rate')
+        %                 data.Line.playback_sampling_rate(lineNum)=[];
+        %             end
+        %             inds=data.spikes{1}(:,1)==lineNum;
+        %             if sum(inds)
+        %                 data.spikes{1}(inds,:)=[];
+        %             end
+        %         end
         fprintf('Updated file named %s\n', curFile.name);
         save(curFile.name, 'data')
     end
-    
-    
     
     badlines(PICnum).Done=1;
     

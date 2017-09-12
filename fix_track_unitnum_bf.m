@@ -14,7 +14,7 @@ MarkerSize=15;
 %%
 CodesDir=pwd;
 addpath(CodesDir);
-MATDataDir='R:\Users\Satya\SP\MATData\';
+MATDataDir='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/';
 
 checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,ChinNum));
 if isempty(checkDIR)
@@ -28,12 +28,13 @@ end
 cd(DataDir);
 
 allCalibfiles=dir('*calib*');
-sprintf('Using file : %s as calib files', allCalibfiles(end).name);
+fprintf('Using file : %s as calib files', allCalibfiles(end).name);
 x=load(allCalibfiles(end).name);
 CalibData=x.data.CalibData(:,1:2);
 
 allTCfiles=dir('*tc*');
 allUnitfiles=dir('Unit*');
+mismatch_names=[];
 
 if length(allUnitfiles)>length(allTCfiles)
     cd(CodesDir);
@@ -67,21 +68,56 @@ else
         
         x=load(allUnitfiles(file_var).name);
         data=x.data;
-        fprintf('PIC %s is for Unit file %s with TrackNum %d and UnitNum %d\n', ...
-            allTCfiles(file_var).name, allUnitfiles(file_var).name,data.track,data.No);
         
+        temp=sscanf(allTCfiles(file_var).name, 'p%04d_u%d_%02d_tc*');
+        picNum=temp(1);
+        TCtrack=temp(2);
+        TCunit=temp(3);
+        
+        if TCtrack==data.track && TCunit==data.No
+            fprintf('PIC %s is for Unit file %s with TrackNum %d and UnitNum %d\n', ...
+                allTCfiles(file_var).name, allUnitfiles(file_var).name,data.track,data.No);
+        else
+            fprintf(2, 'PIC %s is for Unit file %s with TrackNum %d and UnitNum %d\n', ...
+                allTCfiles(file_var).name, allUnitfiles(file_var).name,data.track,data.No);
+            mismatch_names(end+1).picNumStart=picNum; %#ok<AGROW>
+            temp=sscanf(allTCfiles(file_var+1).name, 'p%04d_u%d_%02d_tc*');
+            mismatch_names(end).picNumEnd=temp(1)-1;
+            mismatch_names(end).old_track=TCtrack;
+            mismatch_names(end).old_unit=TCunit;
+            mismatch_names(end).next_track=data.track;
+            mismatch_names(end).next_unit=data.No;
+        end
     end
 end
 set(gcf,'visible','off');
-resp1=questdlg('Are the TC files and Unit files consistent?', 'Hit yes to compare the BF values','NO','YES','NO');
+
+if ~isempty(mismatch_names)
+    for errVar=1:length(mismatch_names)
+        resp0=questdlg(sprintf('Hit yes to rename file number %d-%d to track %d and unit %d', ...
+            mismatch_names(errVar).picNumStart, mismatch_names(errVar).picNumEnd, mismatch_names(errVar).next_track, mismatch_names(errVar).next_unit),...
+            'Inconsistent naming of files (see red output)?',...
+            'NO','YES','NO');
+        if strcmp(resp0, 'YES')
+            for picNum=mismatch_names(errVar).picNumStart:mismatch_names(errVar).picNumEnd
+                fNameOld=getFileName(picNum);
+                fNameNew=strrep(fNameOld, sprintf('_u%d_%02d_',mismatch_names(end).old_track,mismatch_names(end).old_unit), sprintf('_u%d_%02d_',mismatch_names(end).next_track,mismatch_names(end).next_unit));
+                fprintf('changed file %s -- to -> %s\n', fNameOld, fNameNew);
+                movefile(fNameOld, fNameNew);
+            end
+        end
+    end
+end
+
+
 set(gcf,'visible','on');
 xlabel('Frequncy (kHz)');
 ylabel('Threshold (SPL)');
 title(sprintf('Tuning Curves for Chin %d',ChinNum));
-resp2=questdlg('Are the TC files and Unit files consistent?', 'Hit yes to compare the BF values','NO','YES','NO');
+resp2=questdlg('TCs and track_units look good!', 'Hit NEXT to compare the BF values','STOP','NEXT','NEXT');
 set(gcf,'visible','off');
 
-if strcmp(resp1,'YES') && strcmp(resp2,'YES')
+if strcmp(resp2,'NEXT')
     disp(BF_kHz);
     resp3=questdlg('Does everything look okay [BF from atten || BF from SPL]?', 'Confirm to add BFfromSPL field to Unit files','NO','YES','NO');
     
@@ -94,3 +130,5 @@ if strcmp(resp1,'YES') && strcmp(resp2,'YES')
         end
     end
 end
+
+cd(CodesDir);
