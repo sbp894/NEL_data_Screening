@@ -13,6 +13,9 @@ checkRASTER=FIG.checkRASTER;
 fileCur=dir(sprintf('p%04d*',FIG.PICnum));
 x=load(fileCur.name);
 x=x.data;
+if isfield(x.Stimuli, 'bad_lines')
+    FIG.badlines(FIG.PICnum).vals=x.Stimuli.bad_lines;
+end
 nComLines=1;
 FIG.ComStr=sprintf('Picture #: %d, filename: %s',FIG.PICnum,fileCur.name);
 
