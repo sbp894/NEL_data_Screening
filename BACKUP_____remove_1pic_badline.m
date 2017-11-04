@@ -1,7 +1,7 @@
 % 
 % 
 % 
-function badlines=remove_1pic_badline(chinID, PICnum, badlines, CodesDir, MATDataDir)
+% function badlines=remove_1pic_badline(chinID, PICnum, badlines, CodesDir, MATDataDir)
 
 checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,chinID));
 

@@ -62,7 +62,7 @@ if ~isempty(badlines(PICnum).vals)
     
     %% SNRenv
     fprintf('Updated (NAN for badlines) file named %s\n', curFile.name);
-    % % % % %         save(curFile.name, 'data')
+    save(curFile.name, 'data');
 end
 
 cd(CodesDir);
