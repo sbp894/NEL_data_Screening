@@ -12,6 +12,15 @@
 
 function screenDataMAT(varIN)
 
+if isnumeric(varIN)
+    % Function is called the very first time. Clear all figure-data. 
+    close all;
+end
+
+CodesDir='/media/parida/DATAPART1/Matlab/Screening/';
+MATDataDir='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
+
+
 ControlParams.FigureNum=1001;
 ControlParams.rateColor=[.7 .7 .7];
 ControlParams.rasterColor=[.8 .6 .6];
@@ -22,10 +31,14 @@ figure(FIG.num);
 FIG=guidata(FIG.num);
 if ~isfield(FIG, 'num')
     FIG.num=ControlParams.FigureNum;
+    figure_prop_name = {'PaperPositionMode','units','Position'};
+    if FIG.num==100
+        figure_prop_val =  { 'auto' ,'inches', [0.05    1.0    18    9]};
+    else
+        figure_prop_val =  { 'auto' ,'inches', [0.05    1.0    18    9]};
+    end
+    set(FIG.num,figure_prop_name,figure_prop_val);
 end
-
-CodesDir='/media/parida/DATAPART1/Matlab/Screening/';
-MATDataDir='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/';
 
 
 if isnumeric(varIN)
@@ -183,6 +196,9 @@ elseif ischar(varIN)
         end
         FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, CodesDir, MATDataDir);
         set(FIG.handles.BadLineEdit, 'string', '');
+    elseif strcmp(subfunName, 'badLinesRemoveAction')
+        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, CodesDir, MATDataDir);
+        FIG.badlines=remove_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, CodesDir, MATDataDir);
     end
 end
 

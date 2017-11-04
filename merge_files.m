@@ -4,6 +4,9 @@ MATDataRepository='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/'
 
 if nargin==0
     DataDir=uigetdir(MATDataRepository);
+    if ~strcmp(DataDir(end), filesep)
+        DataDir=strcat(DataDir, filesep);
+    end
     picNums(1)= input('First files to merge?');
     picNums(2)= input('Second files to merge?');
 elseif nargin==1
@@ -44,9 +47,14 @@ data.Stimuli.nlines=x1.Stimuli.nlines+x2.Stimuli.nlines;
 data.Stimuli.fully_presented_stimuli=x1.Stimuli.fully_presented_stimuli+x2.Stimuli.fully_presented_stimuli;
 data.Stimuli.fully_presented_lines=x1.Stimuli.fully_presented_lines+x2.Stimuli.fully_presented_lines;
 
-data.Line.attens.list=[x1.Line.attens.list; x2.Line.attens.list];
-data.Line.file=[x1.Line.file, x2.Line.file];
-data.Line.playback_sampling_rate=[x1.Line.playback_sampling_rate, x2.Line.playback_sampling_rate];
+fAttenStructNames=fieldnames(x1.Line.attens);
+data.Line.attens.list=[[x1.Line.attens.(fAttenStructNames{1})] ; [x2.Line.attens.(fAttenStructNames{1})]];
+if isfield(x1.Line, 'file')
+    data.Line.file=[x1.Line.file, x2.Line.file];
+end
+if isfield(x1.Line, 'playback_sampling_rate')
+    data.Line.playback_sampling_rate=[x1.Line.playback_sampling_rate, x2.Line.playback_sampling_rate];
+end
 data.spikes{1,1}=[x1.spikes{1,1}; [x2.spikes{1,1}(:,1)+max(x1.spikes{1,1}(:,1)), x2.spikes{1,1}(:,2)]];
 
 %%

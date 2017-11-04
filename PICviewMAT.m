@@ -36,16 +36,16 @@ return;
 %%################################################################################################
 function [FIG, PIC]=layoutFigure(FIG, PIC)
 
-figure_prop_name = {'PaperPositionMode','units','Position'};
+% figure_prop_name = {'PaperPositionMode','units','Position'};
 % figure_prop_val =  { 'auto'            ,'inches', [8.7083    2.20    5.8333    4]};
-if FIG.num==100
-	figure_prop_val =  { 'auto' ,'inches', [0.05    1.0    18    9]};
-else
-	figure_prop_val =  { 'auto' ,'inches', [0.05    1.0    18    9]};
-end
+% if FIG.num==100
+% 	figure_prop_val =  { 'auto' ,'inches', [0.05    1.0    18    9]};
+% else
+% 	figure_prop_val =  { 'auto' ,'inches', [0.05    1.0    18    9]};
+% end
 FIG.handles.main = figure(FIG.num); 
 clf;
-set(gcf,figure_prop_name,figure_prop_val);
+% set(gcf,figure_prop_name,figure_prop_val);
 
 NameText=sprintf('picture: %04d; filename: %s', PIC.num,getFileName(PIC.num));
 set(gcf, 'Name', NameText);
@@ -72,6 +72,14 @@ FIG.handles.badLinesRemoveReset=uicontrol('Parent',FIG.num,'Style','pushbutton',
 FIG.handles.badLinesRemoveLabel=uicontrol('Parent',FIG.num,'Style','pushbutton',...
     'String','Label','Units','normalized','Position',[0.8 0.3 0.1 0.05],...
     'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''badLinesRemoveLabel'')');
+
+FIG.handles.badLinesRemoveAction=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'off', ......
+    'String',sprintf('Risky-DO-NAN'),'Units','normalized','Position',[0.7 0.25 0.1 0.05],...
+    'Visible','on', 'Backgroundcolor', [.9 .4 .4], 'callback', 'screenDataMAT(''badLinesRemoveAction'')');
+
+FIG.handles.censor_refractory=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'off', ...
+    'String',sprintf('remove < refractory'),'Units','normalized','Position',[0.8 0.25 0.1 0.05],...
+    'Visible','on', 'Backgroundcolor', [.9 .4 .4], 'callback', 'screenDataMAT(''censor_refractory'')');
 
 %%
 FIG.handles.BadLineEdit=uicontrol('Parent',FIG.num,'Style','edit',...
@@ -101,13 +109,27 @@ text(0.5, 1, titleString, 'Units', 'normalized', 'FontSize', FIG.fontSize-1,...
 
 return;
 
-%%################################################################################################
+%% ################################################################################################
+
 function FIG=do_raster(FIG, PIC, excludeLines)
 
-subplot(FIG.handles.raster);
 
-SpikeINDs=find(~ismember(PIC.x.spikes{1}(1:end,1)',excludeLines));
+abs_refractory=.6e-3; % Absolute Refractory Period
+
+%%
+subplot(FIG.handles.raster);
+SpikeINDs=~ismember(PIC.x.spikes{1}(1:end,1)',excludeLines)';
+
+isi=[inf; diff(PIC.x.spikes{1}(SpikeINDs,2))];
+new_line_index=[1;1+find(diff(PIC.x.spikes{1}(:,1))==1)];
+isi(new_line_index)=inf;
+abs_refractory_violation_index= (isi<=abs_refractory);
+abs_refractory_violation_index2plot= (abs_refractory_violation_index & SpikeINDs);
+
+
 plot(PIC.x.spikes{1}(SpikeINDs,2),PIC.x.spikes{1}(SpikeINDs,1), 'k.', 'MarkerSize', 4);
+hold on;
+plot(PIC.x.spikes{1}(abs_refractory_violation_index2plot,2),PIC.x.spikes{1}(abs_refractory_violation_index2plot,1), 'rd', 'MarkerSize', 3);
 
 FIG.raster.xmax = (PIC.x.Hardware.Trigger.StmOn + PIC.x.Hardware.Trigger.StmOff) / 1000;
 FIG.raster.ymax = ceil(PIC.x.Stimuli.fully_presented_lines/10)*10;
@@ -121,7 +143,7 @@ set(gca,'YTick',0:10:FIG.raster.ymax)
 set(gca, 'TickDir', 'out');
 return;
 
-%%################################################################################################
+%% ################################################################################################
 function FIG=do_rate(FIG, PIC, excludeLines)
 
 PIC=calcRatePerLine(PIC);  % Uses driv=[10,410],spont=[600,1000]

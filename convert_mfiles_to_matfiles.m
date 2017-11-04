@@ -3,14 +3,23 @@
 
 
 %%
-function convert_mfiles_to_matfiles()
+function convert_mfiles_to_matfiles(NELDataRepository, MATDataRepository)
+
+if nargin==0
+    NELDataRepository='/media/parida/DATAPART1/Matlab/ExpData/NelData/';
+    MATDataRepository='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
+elseif nargin==1
+    if ~strcmp(NELDataRepository(end), filesep)
+        NELDataRepository=strcat(NELDataRepository, filesep);
+    end
+    MATDataRepository=[NELDataRepository 'MATData' filesep];
+end
+
 
 CodesDir=pwd;
 addpath(CodesDir);
 
 % NELDataRepository='R:\Users\Satya\SP\NELData\';
-NELDataRepository='/media/parida/DATAPART1/Matlab/ExpData/NelData/';
-MATDataRepository='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/test/';
 
 if ~isdir(MATDataRepository)
     mkdir(MATDataRepository);
