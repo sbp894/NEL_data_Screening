@@ -244,8 +244,6 @@ elseif ischar(varIN)
         screenDataMAT('NextPic_PBcallback');
         % ---------------------------------
         
-        
-        
     elseif strcmp(subfunName, 'badLinesRemoveReset')
         if isfield(FIG.badlines(FIG.PICnum),'han1')
             for lNum=1:length(FIG.badlines(FIG.PICnum).han1)
@@ -276,7 +274,29 @@ elseif ischar(varIN)
         guidata(FIG.num, FIG);
         screenDataMAT('NextPic_PBcallback');
         % ---------------------------------
+    elseif strcmp(subfunName, 'censor_refractory')
+        cd(FIG.DataDir);
+        picSearchString = sprintf('p%04d*.mat', FIG.PICnum);
+        curFile = dir(picSearchString);
         
+        temp=load(curFile.name);
+        data=temp.data;
+        abs_refractory=.6e-3; % Absolute Refractory Period
+        
+        isi=[inf; diff(data.spikes{1}(:,2))];
+        new_line_index=[1;1+find(diff(data.spikes{1}(:,1))==1)];
+        isi(new_line_index)=inf;
+        abs_refractory_violation_index= (isi<=abs_refractory);
+        
+        data.spikes{1}(abs_refractory_violation_index,:)=nan;
+        save(curFile.name, 'data');
+        
+        % Refresh the plot ----------------
+        guidata(FIG.num, FIG);
+        screenDataMAT('RefreshPic_PBcallback');
+        FIG=guidata(FIG.num);
+        % ---------------------------------
+%         fprintf('Ready\n');
     end
 end
 
@@ -292,3 +312,4 @@ else
 end
 
 cd(CodesDir);
+
