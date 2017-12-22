@@ -20,16 +20,22 @@ nComLines=1;
 FIG.ComStr=sprintf('Picture #: %d, filename: %s',FIG.PICnum,fileCur.name);
 
 if isfield(x.General,'trigger')
+    FIG.trigger=upper(x.General.trigger);
     nComLines=nComLines+1;
     FIG.ComStr=strcat(FIG.ComStr,  sprintf('\nTrigger: %s',upper(x.General.trigger)));
     if sum(strcmp(deblank(x.General.trigger),{'Poor','Fair'}))
         beep
     end
+else 
+    FIG.trigger='---';
 end
 
 if isfield(x.General,'comment')
     nComLines=nComLines+1;
     FIG.ComStr=strcat(FIG.ComStr, sprintf('\nComment: %s\n',upper(x.General.comment)));
+    FIG.comment_in_pic=x.General.comment;
+else 
+    FIG.comment_in_pic='';
 end
 
 if isfield(x.General,'run_errors')

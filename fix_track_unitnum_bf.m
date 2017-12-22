@@ -12,9 +12,9 @@ LineWidth=2;
 MarkerSize=15;
 
 %%
-CodesDir=pwd;
+CodesDir='/media/parida/DATAPART1/Matlab/Screening/';
 addpath(CodesDir);
-MATDataDir='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/';
+MATDataDir='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
 
 checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,ChinNum));
 if isempty(checkDIR)
@@ -28,7 +28,7 @@ end
 cd(DataDir);
 
 allCalibfiles=dir('*calib*');
-fprintf('Using file : %s as calib files', allCalibfiles(end).name);
+fprintf('Using file : %s as calib files\n', allCalibfiles(end).name);
 x=load(allCalibfiles(end).name);
 CalibData=x.data.CalibData(:,1:2);
 
@@ -43,7 +43,7 @@ elseif length(allUnitfiles)<length(allTCfiles)
     cd(CodesDir);
     error('There are %d TC files, but %d Unit files. Delete extra TC or move it to a different folder', length(allTCfiles), length(allUnitfiles));
 else
-    BF_kHz=zeros(length(allTCfiles),2);
+    BF_kHz=zeros(length(allTCfiles),3);
     for file_var=1:length(allTCfiles)
         x=load(allTCfiles(file_var).name);
         x=x.data;
@@ -118,8 +118,9 @@ resp2=questdlg('TCs and track_units look good!', 'Hit NEXT to compare the BF val
 set(gcf,'visible','off');
 
 if strcmp(resp2,'NEXT')
+    BF_kHz(:,3)=100*(BF_kHz(:,1)-BF_kHz(:,2))./BF_kHz(:,2);
     disp(BF_kHz);
-    resp3=questdlg('Does everything look okay [BF from atten || BF from SPL]?', 'Confirm to add BFfromSPL field to Unit files','NO','YES','NO');
+    resp3=questdlg('Does everything look okay [BF from atten || BF from SPL|| %%difference]?', 'Confirm to add BFfromSPL field to Unit files','NO','YES','NO');
     
     if strcmp(resp3,'YES')
         for file_var=1:length(allUnitfiles)
@@ -130,5 +131,27 @@ if strcmp(resp2,'NEXT')
         end
     end
 end
+
+allfiles=dir('p*.mat');
+for fileVar=1:length(allfiles)
+    fName=allfiles(fileVar).name;
+    if contains(fName(6:7), '_u')  % Should be p*_u*.mat
+        load(fName);
+        TrackUnitNum=getTrackUnit(fName);
+        
+        if data.General.track~=TrackUnitNum(1)
+            fprintf('%s --> track updated from %d to %d in data.general\n', fName, data.General.track, TrackUnitNum(1));
+            data.General.track=TrackUnitNum(1);
+        end
+        
+        if data.General.unit~=TrackUnitNum(2)
+            fprintf('%s --> unit updated from %d to %d in data.general\n', fName, data.General.unit, TrackUnitNum(2));
+            data.General.unit=TrackUnitNum(2);
+        end
+        save(fName, 'data');
+    end
+end
+
+
 
 cd(CodesDir);

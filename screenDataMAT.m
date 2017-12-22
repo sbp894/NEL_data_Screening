@@ -1,4 +1,4 @@
-
+% Assumptions: Assumes that the first pic for a track/unit pair is TC. 
 
 %
 % Note (Important): Since there are no global variables, guidata is used.
@@ -8,12 +8,16 @@
 % FIG=guidata(FIG.num);
 %
 % Comments:
+% Need to add GoToPicEdit
+% Need to add TCs
 
 
-function screenDataMAT(varIN)
+function allDone=screenDataMAT(varIN)
+
+allDone=0;
 
 if nargin==0
-   error('Argument should be chinID without Q'); 
+    error('Argument should be chinID without Q');
 end
 
 if isnumeric(varIN)
@@ -62,6 +66,19 @@ if isnumeric(varIN)
     end
     
     cd(FIG.DataDir);
+    FIG.OutputDir=strcat(FIG.DataDir, filesep, 'ScreeningOutput', filesep);
+    if ~isdir(FIG.OutputDir)
+        mkdir(FIG.OutputDir);
+    end
+    all_AN_picFiles=dir([FIG.DataDir filesep 'p*.mat']);
+    maxPicNUM=getPicNum(all_AN_picFiles(end).name);
+    %     if ~exist([FIG.OutputDir 'ScreeningSummary.mat'], 'file')
+    FIG.ScreeningSummary=repmat(struct('filename', '---' ,'percentRefractoryViolation', nan, 'trigger', '---', 'comments', '---'), maxPicNUM, 1);
+    %     else
+    %         temp=load([FIG.OutputDir 'ScreeningSummary.mat']);
+    %         FIG.ScreeningSummary=temp.xlsSummaryData;
+    %     end
+    
     
     %
     FIG.TrackNum=1;
@@ -78,7 +95,12 @@ if isnumeric(varIN)
         FIG.CheckStop=1;
     else % Do track-1, unit-1
         FIG.PICnum=FIG.picList(1);
-        FIG.numPICsdone=1; % to skip tuning curve, else should initialize to 0
+        if contains(getFileName(FIG.PICnum), 'tc')
+            FIG.numPICsdone=1; % to skip tuning curve, else should initialize to 0
+        else
+            FIG.numPICsdone=0; %if somehow tc is not the first file
+            warning('TC is not the first picture?????? May result in an error. ');
+        end
         FIG=ReviewUnitTriggeringMAT(FIG);
         if ~isempty(FIG.badlines(FIG.PICnum).vals)
             set(FIG.handles.BadLineEdit, 'string', num2str(FIG.badlines(FIG.PICnum).vals));
@@ -87,8 +109,6 @@ if isnumeric(varIN)
             FIG=guidata(FIG.num);
         end
     end
-    datacursormode(FIG.num);
-    
     
 elseif ischar(varIN)
     subfunName=varIN;
@@ -115,7 +135,7 @@ elseif ischar(varIN)
                 FIG.PICnum=FIG.picList(1)-1;
                 filename=getFileName(FIG.PICnum);
                 TrackUnitNum=getTrackUnit(filename);
-
+                
                 while contains(filename, 'tc')
                     %                     warning('Should throw weird results when only TC is saved for a unit.');
                     unit_files=dir([FIG.DataDir filesep 'Unit*.mat']);
@@ -143,7 +163,6 @@ elseif ischar(varIN)
                 
             end
         end
-        
         
     elseif strcmp(subfunName, 'RefreshPic_PBcallback') % (Probably) a useless callback
         cd(FIG.DataDir);
@@ -198,10 +217,11 @@ elseif ischar(varIN)
                     FIG=guidata(FIG.num);
                 end
             end
-            datacursormode(FIG.num);
+            
         else
             fprintf('all units are screened for this unit\n');
             close(FIG.num);
+            allDone=1;
         end
         
     elseif strcmp(subfunName, 'Badlines_Editcallback')
@@ -209,7 +229,7 @@ elseif ischar(varIN)
         if sum(isstrprop(picStr,'digit'))
             tempVals=ParseInputString2Num(picStr);
             FIG.badlines(FIG.PICnum).vals=tempVals;
-         
+            
             if isfield(FIG.badlines(FIG.PICnum),'han1')
                 for lNum=1:length(FIG.badlines(FIG.PICnum).han1)
                     if isgraphics(FIG.badlines(FIG.PICnum).han1(lNum).lineHan)
@@ -233,16 +253,17 @@ elseif ischar(varIN)
         else
             FIG.badlines(FIG.PICnum).vals=nan;
         end
-        datacursormode(FIG.num);
+        
         
     elseif strcmp(subfunName, 'badLinesRemoveLabel')
         FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, CodesDir, MATDataDir);
         
         % Refresh the plot ----------------
-        FIG.numPICsdone=FIG.numPICsdone-1;
         guidata(FIG.num, FIG);
-        screenDataMAT('NextPic_PBcallback');
+        screenDataMAT('RefreshPic_PBcallback');
+        FIG=guidata(FIG.num);
         % ---------------------------------
+        
         
     elseif strcmp(subfunName, 'badLinesRemoveReset')
         if isfield(FIG.badlines(FIG.PICnum),'han1')
@@ -263,17 +284,19 @@ elseif ischar(varIN)
         end
         FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, CodesDir, MATDataDir);
         set(FIG.handles.BadLineEdit, 'string', '');
-    
-    
+        
+        
     elseif strcmp(subfunName, 'badLinesRemoveAction')
         FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, CodesDir, MATDataDir);
         FIG.badlines=remove_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, CodesDir, MATDataDir);
         
         % Refresh the plot ----------------
-        FIG.numPICsdone=FIG.numPICsdone-1;
         guidata(FIG.num, FIG);
-        screenDataMAT('NextPic_PBcallback');
+        screenDataMAT('RefreshPic_PBcallback');
+        FIG=guidata(FIG.num);
         % ---------------------------------
+        
+        
     elseif strcmp(subfunName, 'censor_refractory')
         cd(FIG.DataDir);
         picSearchString = sprintf('p%04d*.mat', FIG.PICnum);
@@ -288,15 +311,50 @@ elseif ischar(varIN)
         isi(new_line_index)=inf;
         abs_refractory_violation_index= (isi<=abs_refractory);
         
+        if ~isfield(data, 'percent_less_than_refractory')
+            data.percent_less_than_refractory=100*sum(abs_refractory_violation_index)/size(data.spikes{1}, 1);
+        end
+        
         data.spikes{1}(abs_refractory_violation_index,:)=nan;
         save(curFile.name, 'data');
+        
+        fprintf('Updated (labelled bad lines) file named %s\n', curFile.name);
         
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
         screenDataMAT('RefreshPic_PBcallback');
         FIG=guidata(FIG.num);
         % ---------------------------------
-%         fprintf('Ready\n');
+        %         fprintf('Ready\n');
+        
+        
+    elseif strcmp(subfunName, 'GoToPicEdit')
+        cd(FIG.DataDir);
+        temp=get(FIG.handles.GoToPicEdit, 'string');
+        if sum(isstrprop(temp,'digit'))
+            if isnan(str2double(temp))
+                error('Enter a single pic value');
+            else
+                FIG.PICnum=str2double(temp);
+            end
+        else
+            error('input should be numeric');
+        end
+        filename=getFileName(FIG.PICnum);
+        while contains(filename, 'tc')
+            FIG.PICnum=FIG.PICnum+1;
+            filename=getFileName(FIG.PICnum);
+        end
+        TrackUnitNum=getTrackUnit(filename);
+        FIG.TrackNum=TrackUnitNum(1);
+        FIG.UnitNum=TrackUnitNum(2);
+        FIG.picList=findPics('*',[FIG.TrackNum,FIG.UnitNum]);
+        FIG.numPICsdone=find(FIG.picList==FIG.PICnum);
+        
+        % All set to call RefreshPic_PBcallback
+        guidata(FIG.num, FIG);
+        screenDataMAT('RefreshPic_PBcallback');
+        FIG=guidata(FIG.num);
     end
 end
 
@@ -306,10 +364,30 @@ if ~ishandle(FIG.num)
         %         save('reviewOUTPUT.mat', 'badLines');
     end
 else
+    datacursormode(FIG.num);
     guidata(FIG.num, FIG);
     figure(FIG.num);
-    datacursormode(FIG.num);
+    
+end
+
+cd(FIG.DataDir);
+
+if ~isempty(FIG.picList)
+    FIG.ScreeningSummary(FIG.picList(FIG.numPICsdone)).filename=getFileName(FIG.picList(FIG.numPICsdone));
+    
+    if isfield(FIG, 'percent_less_than_refractory')
+        FIG.ScreeningSummary(FIG.picList(FIG.numPICsdone)).percentRefractoryViolation=FIG.percent_less_than_refractory;
+    end
+    FIG.ScreeningSummary(FIG.picList(FIG.numPICsdone)).trigger=FIG.trigger;
+    FIG.ScreeningSummary(FIG.picList(FIG.numPICsdone)).comments=FIG.comment_in_pic;
+    if ishandle(FIG.num)
+        guidata(FIG.num, FIG);
+    end
+    
+    % xlsSummaryData=[ {FIG.ScreeningSummary.filename}', cellstr(num2str([FIG.ScreeningSummary.percentRefractoryViolation]')), {FIG.ScreeningSummary.trigger}' ];
+    % xlswrite([FIG.OutputDir 'ScreeningSummary'], xlsSummaryData(:,:));
+    xlsSummaryData=FIG.ScreeningSummary; %#ok<NASGU>
+    save([FIG.OutputDir 'ScreeningSummary' num2str(FIG.ChinID) '.mat'], 'xlsSummaryData');
 end
 
 cd(CodesDir);
-

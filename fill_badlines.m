@@ -15,6 +15,6 @@ for blineVar=1:length(tempVals)
     yFill(yFill<yMinMax(1))=yMinMax(1);
     yFill(yFill>yMinMax(2))=yMinMax(2);
     
-    han(blineVar).lineHan=fill(axhan, xFill, yFill, 'c', 'facealpha',.75,'LineStyle','none');
+    han(blineVar).lineHan=fill(axhan, xFill, yFill, 'c', 'facealpha',.5,'LineStyle','none');
     han(blineVar).lineHan.FaceColor=fillColor;
 end

@@ -71,6 +71,15 @@ FIG.handles.NextPicPB=uicontrol('Parent',FIG.num,'Style','pushbutton',...
 
 
 %% Working on it now
+
+FIG.handles.GoToPicTxt=uicontrol('Parent',FIG.num,'Style','text',...
+    'String','Go To Pic #','Units','normalized','Position',[0.63 0.23 0.05 0.03],...
+    'Visible','on', 'Backgroundcolor', [.5 .5 .8]);
+
+FIG.handles.GoToPicEdit=uicontrol('Parent',FIG.num,'Style','edit',...
+    'String','','Units','normalized','Position',[0.63 0.2 0.05 0.03],...
+    'Visible','on', 'Backgroundcolor', [.6 .6 .8], 'callback', 'screenDataMAT(''GoToPicEdit'')');
+
 FIG.handles.badLinesRemoveReset=uicontrol('Parent',FIG.num,'Style','pushbutton',...
     'String','Reset','Units','normalized','Position',[0.7 0.3 0.1 0.05],...
     'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''badLinesRemoveReset'')');
@@ -80,11 +89,11 @@ FIG.handles.badLinesRemoveLabel=uicontrol('Parent',FIG.num,'Style','pushbutton',
     'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''badLinesRemoveLabel'')');
 
 FIG.handles.badLinesRemoveAction=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ......
-    'String',sprintf('Risky-DO-NAN'),'Units','normalized','Position',[0.7 0.25 0.1 0.05],...
+    'String',sprintf('Risky-DO-NAN'),'Units','normalized','Position',[0.7 0.2 0.1 0.05],...
     'Visible','on', 'Backgroundcolor', [.9 .4 .4], 'callback', 'screenDataMAT(''badLinesRemoveAction'')');
 
 FIG.handles.censor_refractory=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ...
-    'String',sprintf('remove < refractory'),'Units','normalized','Position',[0.8 0.25 0.1 0.05],...
+    'String',sprintf('remove < refractory'),'Units','normalized','Position',[0.8 0.2 0.1 0.05],...
     'Visible','on', 'Backgroundcolor', [.9 .4 .4], 'callback', 'screenDataMAT(''censor_refractory'')');
 
 %%
@@ -136,8 +145,13 @@ abs_refractory_violation_index2plot= (abs_refractory_violation_index & SpikeINDs
 plot(PIC.x.spikes{1}(SpikeINDs,2),PIC.x.spikes{1}(SpikeINDs,1), 'k.', 'MarkerSize', 4);
 hold on;
 plot(PIC.x.spikes{1}(abs_refractory_violation_index2plot,2),PIC.x.spikes{1}(abs_refractory_violation_index2plot,1), 'rd', 'MarkerSize', 3);
-title(sprintf('%d spikes before refractory (%.2f%%)', sum(abs_refractory_violation_index2plot), 100*sum(abs_refractory_violation_index2plot)/sum(SpikeINDs)));
-
+percent_less_than_refractory=100*sum(abs_refractory_violation_index2plot)/sum(SpikeINDs);
+FIG.percent_less_than_refractory=percent_less_than_refractory;
+if ~isfield(PIC.x,'percent_less_than_refractory')
+    title(sprintf('Not Censored. %d spikes before refractory (%.2f%%)', sum(abs_refractory_violation_index2plot), percent_less_than_refractory));
+else 
+     title(sprintf('Censored. %d spikes before refractory now. Before censoring it was %.2f%%)', sum(abs_refractory_violation_index2plot), PIC.x.percent_less_than_refractory));
+end
 
 FIG.raster.xmax = (PIC.x.Hardware.Trigger.StmOn + PIC.x.Hardware.Trigger.StmOff) / 1000;
 FIG.raster.ymax = ceil(PIC.x.Stimuli.fully_presented_lines/10)*10;
