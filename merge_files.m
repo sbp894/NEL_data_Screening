@@ -1,6 +1,8 @@
+% function merge_files(chinID, picNums)
+
 function merge_files(chinID, picNums)
 
-MATDataRepository='/media/parida/DATAPART1/Matlab/SNRenv/n_sEPSM/Codes/MATData/';
+MATDataRepository='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
 
 if nargin==0
     DataDir=uigetdir(MATDataRepository);

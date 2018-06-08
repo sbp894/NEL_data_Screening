@@ -114,6 +114,7 @@ set(gcf,'visible','on');
 xlabel('Frequncy (kHz)');
 ylabel('Threshold (SPL)');
 title(sprintf('Tuning Curves for Chin %d',ChinNum));
+set(gca, 'xscale', 'log');
 resp2=questdlg('TCs and track_units look good!', 'Hit NEXT to compare the BF values','STOP','NEXT','NEXT');
 set(gcf,'visible','off');
 

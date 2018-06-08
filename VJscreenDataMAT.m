@@ -8,15 +8,13 @@
 % FIG=guidata(FIG.num);
 %
 % Comments:
+% Need to add GoToPicEdit
 % Need to add TCs
-% Need to add discard button
-% Need to udpate moving by pic-# basis
 
 
-function screenDataMAT(varIN)
-% function allDone=screenDataMAT(varIN)
+function allDone=VJscreenDataMAT(varIN)
 
-% allDone=0;
+allDone=0;
 
 if nargin==0
     error('Argument should be chinID without Q');
@@ -28,7 +26,7 @@ if isnumeric(varIN)
 end
 
 CodesDir='/media/parida/DATAPART1/Matlab/Screening/';
-MATDataDir='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
+MATDataDir='/media/parida/DATAPART1/temp/MATdataFromSP/';
 
 
 ControlParams.FigureNum=1001;
@@ -68,15 +66,6 @@ if isnumeric(varIN)
     end
     
     cd(FIG.DataDir);
-    calibFile=dir('*calib*');
-    calibfName=calibFile(end).name;
-    FIG.calib_PicNum=NELfuns.getPicNum(calibfName);
-    if length(calibFile)~=1
-        warning('Multiple calib files. Using the last one ---%s\n', calibfName);
-    end
-    
-    
-    
     FIG.OutputDir=strcat(FIG.DataDir, filesep, 'ScreeningOutput', filesep);
     if ~isdir(FIG.OutputDir)
         mkdir(FIG.OutputDir);
@@ -89,6 +78,7 @@ if isnumeric(varIN)
     %         temp=load([FIG.OutputDir 'ScreeningSummary.mat']);
     %         FIG.ScreeningSummary=temp.xlsSummaryData;
     %     end
+    
     
     %
     FIG.TrackNum=1;
@@ -107,7 +97,6 @@ if isnumeric(varIN)
         FIG.PICnum=FIG.picList(1);
         if contains(getFileName(FIG.PICnum), 'tc')
             FIG.numPICsdone=1; % to skip tuning curve, else should initialize to 0
-            FIG.tcPicNum=FIG.PICnum;
         else
             FIG.numPICsdone=0; %if somehow tc is not the first file
             warning('TC is not the first picture?????? May result in an error. ');
@@ -149,7 +138,6 @@ elseif ischar(varIN)
                 
                 while contains(filename, 'tc')
                     %                     warning('Should throw weird results when only TC is saved for a unit.');
-                    FIG.tcPicNum=FIG.PICnum;
                     unit_files=dir([FIG.DataDir filesep 'Unit*.mat']);
                     unit_files={unit_files.name};
                     track_unit_mat=cell2mat(cellfun(@(x) sscanf(x, 'Unit_%d_%02d.mat'), unit_files, 'UniformOutput', false))';
@@ -233,7 +221,7 @@ elseif ischar(varIN)
         else
             fprintf('all units are screened for this unit\n');
             close(FIG.num);
-%             allDone=1;
+            allDone=1;
         end
         
     elseif strcmp(subfunName, 'Badlines_Editcallback')
@@ -330,7 +318,7 @@ elseif ischar(varIN)
         data.spikes{1}(abs_refractory_violation_index,:)=nan;
         save(curFile.name, 'data');
         
-        fprintf('Removed spikes violating absolute refractory period for file named %s\n', curFile.name);
+        fprintf('Updated (labelled bad lines) file named %s\n', curFile.name);
         
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
@@ -355,7 +343,6 @@ elseif ischar(varIN)
         filename=getFileName(FIG.PICnum);
         while contains(filename, 'tc')
             FIG.PICnum=FIG.PICnum+1;
-            FIG.tcPicNum=FIG.PICnum;
             filename=getFileName(FIG.PICnum);
         end
         TrackUnitNum=getTrackUnit(filename);

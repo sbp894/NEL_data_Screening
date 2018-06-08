@@ -149,7 +149,6 @@ elseif ischar(varIN)
                 
                 while contains(filename, 'tc')
                     %                     warning('Should throw weird results when only TC is saved for a unit.');
-                    FIG.tcPicNum=FIG.PICnum;
                     unit_files=dir([FIG.DataDir filesep 'Unit*.mat']);
                     unit_files={unit_files.name};
                     track_unit_mat=cell2mat(cellfun(@(x) sscanf(x, 'Unit_%d_%02d.mat'), unit_files, 'UniformOutput', false))';
@@ -221,6 +220,7 @@ elseif ischar(varIN)
                     
                 else % Start of a new unit, because all pics for old unit are done
                     FIG.numPICsdone=1; % No need to include TC (assumed that TC is the first file)
+                    FIG.tcPicNum=FIG.PICnum;
                     FIG.UnitNum=FIG.UnitNum+1;
                     FIG.CheckStop=0;
                     
@@ -355,7 +355,7 @@ elseif ischar(varIN)
         filename=getFileName(FIG.PICnum);
         while contains(filename, 'tc')
             FIG.PICnum=FIG.PICnum+1;
-            FIG.tcPicNum=FIG.PICnum;
+            
             filename=getFileName(FIG.PICnum);
         end
         TrackUnitNum=getTrackUnit(filename);

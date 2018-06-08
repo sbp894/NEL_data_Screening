@@ -55,7 +55,7 @@ if checkRASTER
         FIG=PICviewMAT(FIG, FIG.PICnum,'', FIG.num);
         [SR_sps,~,~,~] = PIC_calcSR(FIG.PICnum);
         nComLines=nComLines+1;
-        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nMEAN SPONT RATE = %.1f sp/sec\nCF=%.1f kHz || Threshold=%.1f dB SPL|| Q10=%.1f\n',SR_sps, FIG.TCdata.BF_kHz, FIG.TCdata.Thresh_dBSPL, FIG.TCdata.Q10));
+        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nMEAN SPONT RATE = %.1f sp/sec\nCF=%.1f kHz\nThreshold=%.1f\nQ_1_0=%.1f\n, ',SR_sps, FIG.TCdata.BF_kHz, FIG.TCdata.Thresh_dBSPL, FIG.TCdata.Q10));
         beep
     else
         guidata(FIG.num, FIG);
