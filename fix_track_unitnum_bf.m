@@ -1,0 +1,158 @@
+function fix_track_unitnum_bf(ChinNum)
+
+%%
+TFiltWidthTC=5;
+%%
+hanTC=101;
+figure(hanTC);
+clf;
+set (gcf, 'Units', 'normalized', 'Position', [.1 .1 .8 .8]);
+hold on;
+LineWidth=2;
+MarkerSize=15;
+
+%%
+CodesDir='/media/parida/DATAPART1/Matlab/Screening/';
+addpath(CodesDir);
+MATDataDir='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
+
+checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,ChinNum));
+if isempty(checkDIR)
+    error('No such directory for animal number %d',ChinNum);
+elseif length(checkDIR)~=1
+    error('Multiple directories. Change!');
+else
+    DataDir=[MATDataDir checkDIR.name];
+end
+
+cd(DataDir);
+
+allCalibfiles=dir('*calib*');
+fprintf('Using file : %s as calib files\n', allCalibfiles(end).name);
+x=load(allCalibfiles(end).name);
+CalibData=x.data.CalibData(:,1:2);
+
+allTCfiles=dir('*tc*');
+allUnitfiles=dir('Unit*');
+mismatch_names=[];
+
+if length(allUnitfiles)>length(allTCfiles)
+    cd(CodesDir);
+    error('There are %d TC files, but %d Unit files. Delete the unit files that are extra.', length(allTCfiles), length(allUnitfiles));
+elseif length(allUnitfiles)<length(allTCfiles)
+    cd(CodesDir);
+    error('There are %d TC files, but %d Unit files. Delete extra TC or move it to a different folder', length(allTCfiles), length(allUnitfiles));
+else
+    BF_kHz=zeros(length(allTCfiles),3);
+    for file_var=1:length(allTCfiles)
+        x=load(allTCfiles(file_var).name);
+        x=x.data;
+        TCdata=x.TcData;
+        TCdata=TCdata(TCdata(:,1)~=0,:);  % Get rid of all 0 freqs
+        TCdata=TCdata(TCdata(:,2)~=x.Stimuli.file_attlo,:);  % Get rid of all 'upper atten limit points'
+        
+        for i=1:size(TCdata,1)
+            TCdata(i,3)=CalibInterp(TCdata(i,1),CalibData)-TCdata(i,2);
+        end
+        TCdata(:,4)=trifilt(TCdata(:,3)',TFiltWidthTC)';
+        if isfield(x.Thresh,'BF')
+            BF_kHz(file_var,1)=x.Thresh.BF;
+        else
+            BF_kHz(file_var,1)=nan;
+        end
+        WhatTCData=4;
+        BF_kHz(file_var,2)=TCdata(TCdata(:,WhatTCData)==min(TCdata(:,WhatTCData)),1);
+        h1=semilogx(TCdata(:,1),TCdata(:,4),'LINEWIDTH',LineWidth);
+        color = get(h1, 'Color');
+        semilogx(BF_kHz(file_var,2),min(TCdata(:,WhatTCData)),'x','color',color ,'MARKERSIZE',MarkerSize);
+        
+        x=load(allUnitfiles(file_var).name);
+        data=x.data;
+        
+        temp=sscanf(allTCfiles(file_var).name, 'p%04d_u%d_%02d_tc*');
+        picNum=temp(1);
+        TCtrack=temp(2);
+        TCunit=temp(3);
+        
+        if TCtrack==data.track && TCunit==data.No
+            fprintf('PIC %s is for Unit file %s with TrackNum %d and UnitNum %d\n', ...
+                allTCfiles(file_var).name, allUnitfiles(file_var).name,data.track,data.No);
+        else
+            fprintf(2, 'PIC %s is for Unit file %s with TrackNum %d and UnitNum %d\n', ...
+                allTCfiles(file_var).name, allUnitfiles(file_var).name,data.track,data.No);
+            mismatch_names(end+1).picNumStart=picNum; %#ok<AGROW>
+            temp=sscanf(allTCfiles(file_var+1).name, 'p%04d_u%d_%02d_tc*');
+            mismatch_names(end).picNumEnd=temp(1)-1;
+            mismatch_names(end).old_track=TCtrack;
+            mismatch_names(end).old_unit=TCunit;
+            mismatch_names(end).next_track=data.track;
+            mismatch_names(end).next_unit=data.No;
+        end
+    end
+end
+set(gcf,'visible','off');
+
+if ~isempty(mismatch_names)
+    for errVar=1:length(mismatch_names)
+        resp0=questdlg(sprintf('Hit yes to rename file number %d-%d to track %d and unit %d', ...
+            mismatch_names(errVar).picNumStart, mismatch_names(errVar).picNumEnd, mismatch_names(errVar).next_track, mismatch_names(errVar).next_unit),...
+            'Inconsistent naming of files (see red output)?',...
+            'NO','YES','NO');
+        if strcmp(resp0, 'YES')
+            for picNum=mismatch_names(errVar).picNumStart:mismatch_names(errVar).picNumEnd
+                fNameOld=getFileName(picNum);
+                fNameNew=strrep(fNameOld, sprintf('_u%d_%02d_',mismatch_names(end).old_track,mismatch_names(end).old_unit), sprintf('_u%d_%02d_',mismatch_names(end).next_track,mismatch_names(end).next_unit));
+                fprintf('changed file %s -- to -> %s\n', fNameOld, fNameNew);
+                movefile(fNameOld, fNameNew);
+            end
+        end
+    end
+end
+
+
+set(gcf,'visible','on');
+xlabel('Frequncy (kHz)');
+ylabel('Threshold (SPL)');
+title(sprintf('Tuning Curves for Chin %d',ChinNum));
+set(gca, 'xscale', 'log');
+resp2=questdlg('TCs and track_units look good!', 'Hit NEXT to compare the BF values','STOP','NEXT','NEXT');
+set(gcf,'visible','off');
+
+if strcmp(resp2,'NEXT')
+    BF_kHz(:,3)=100*(BF_kHz(:,1)-BF_kHz(:,2))./BF_kHz(:,2);
+    disp(BF_kHz);
+    resp3=questdlg('Does everything look okay [BF from atten || BF from SPL|| %%difference]?', 'Confirm to add BFfromSPL field to Unit files','NO','YES','NO');
+    
+    if strcmp(resp3,'YES')
+        for file_var=1:length(allUnitfiles)
+            x=load(allUnitfiles(file_var).name);
+            data=x.data;
+            data.BFmod=BF_kHz(file_var,2);
+            save(allUnitfiles(file_var).name,'data');
+        end
+    end
+end
+
+allfiles=dir('p*.mat');
+for fileVar=1:length(allfiles)
+    fName=allfiles(fileVar).name;
+    if contains(fName(6:7), '_u')  % Should be p*_u*.mat
+        load(fName);
+        TrackUnitNum=getTrackUnit(fName);
+        
+        if data.General.track~=TrackUnitNum(1)
+            fprintf('%s --> track updated from %d to %d in data.general\n', fName, data.General.track, TrackUnitNum(1));
+            data.General.track=TrackUnitNum(1);
+        end
+        
+        if data.General.unit~=TrackUnitNum(2)
+            fprintf('%s --> unit updated from %d to %d in data.general\n', fName, data.General.unit, TrackUnitNum(2));
+            data.General.unit=TrackUnitNum(2);
+        end
+        save(fName, 'data');
+    end
+end
+
+
+
+cd(CodesDir);
