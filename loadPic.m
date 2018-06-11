@@ -1,10 +1,11 @@
 function x = loadPic(picNum)     % Load picture
-picSearchString = sprintf('p%04d*.m', picNum);
+picSearchString = sprintf('p%04d*.mat', picNum);
 picMFile = dir(picSearchString);
-if (~isempty(picMFile))
-   eval( strcat('x = ',picMFile.name(1:length(picMFile.name)-2),';') );
+if ~isempty(picMFile)
+    x=load(picMFile.name);
+    x=x.data;
 else
-   error = sprintf('Picture file p%04d*.m not found.', picNum)
-   x = [];
-   return;
+    error('Picture file p%04d*.mat not found.', picNum);
+    x = [];
+    return;
 end
