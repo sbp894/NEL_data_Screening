@@ -21,8 +21,13 @@ FIG.fontSize = 8; % used for axis labelling.
 
 picSearchString = sprintf('p%04d*.mat', picNum);
 picMFile = dir(picSearchString);
-
-temp=load(picMFile.name);
+if ~isempty(picMFile)
+    temp=load(picMFile.name);
+else 
+    picSearchString = sprintf('%sp%04d*.mat', FIG.NotUsedDIR, picNum);
+    picMFile = dir(picSearchString);
+    temp=load([FIG.NotUsedDIR picMFile.name]);
+end
 PIC.x=temp.data;
 PIC.num=picNum;
 

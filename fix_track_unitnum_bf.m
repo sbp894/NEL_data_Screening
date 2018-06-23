@@ -94,10 +94,15 @@ set(gcf,'visible','off');
 
 if ~isempty(mismatch_names)
     for errVar=1:length(mismatch_names)
-        resp0=questdlg(sprintf('Hit yes to rename file number %d-%d to track %d and unit %d', ...
-            mismatch_names(errVar).picNumStart, mismatch_names(errVar).picNumEnd, mismatch_names(errVar).next_track, mismatch_names(errVar).next_unit),...
-            'Inconsistent naming of files (see red output)?',...
-            'NO','YES','NO');
+        %         resp0=questdlg(sprintf('Hit yes to rename file number %d-%d to track %d and unit %d', ...
+        %             mismatch_names(errVar).picNumStart, mismatch_names(errVar).picNumEnd, mismatch_names(errVar).next_track, mismatch_names(errVar).next_unit),...
+        %             'Inconsistent naming of files (see red output)?',...
+        %             'NO','YES','NO');
+        %
+        resp0=input(sprintf('Hit yes to rename file number %d-%d to track %d and unit %d, consistent naming of files (see red output)? (y/n)', ...
+            mismatch_names(errVar).picNumStart, mismatch_names(errVar).picNumEnd, mismatch_names(errVar).next_track, mismatch_names(errVar).next_unit), 's');
+        
+        
         if strcmp(resp0, 'YES')
             for picNum=mismatch_names(errVar).picNumStart:mismatch_names(errVar).picNumEnd
                 fNameOld=getFileName(picNum);
@@ -115,23 +120,31 @@ xlabel('Frequncy (kHz)');
 ylabel('Threshold (SPL)');
 title(sprintf('Tuning Curves for Chin %d',ChinNum));
 set(gca, 'xscale', 'log');
-resp2=questdlg('TCs and track_units look good!', 'Hit NEXT to compare the BF values','STOP','NEXT','NEXT');
+% resp2=questdlg('TCs and track_units look good!', 'Hit NEXT to compare the BF values','STOP','NEXT','NEXT');
+resp2=input('All good? (y/n)', 's');
+
 set(gcf,'visible','off');
 
-if strcmp(resp2,'NEXT')
-    BF_kHz(:,3)=100*(BF_kHz(:,1)-BF_kHz(:,2))./BF_kHz(:,2);
-    disp(BF_kHz);
-    resp3=questdlg('Does everything look okay [BF from atten || BF from SPL|| %%difference]?', 'Confirm to add BFfromSPL field to Unit files','NO','YES','NO');
-    
-    if strcmp(resp3,'YES')
-        for file_var=1:length(allUnitfiles)
-            x=load(allUnitfiles(file_var).name);
-            data=x.data;
-            data.BFmod=BF_kHz(file_var,2);
-            save(allUnitfiles(file_var).name,'data');
+switch lower(resp2)
+    case {'y', 'yes'}
+        BF_kHz(:,3)=100*(BF_kHz(:,1)-BF_kHz(:,2))./BF_kHz(:,2);
+        disp(BF_kHz);
+        %     resp3=input('Does everything look okay [BF from atten || BF from SPL|| %%difference]? (say yes)', 'Confirm to add BFfromSPL field to Unit files','NO','YES','NO');
+        resp3=input('Does everything look okay [BF from atten || BF from SPL|| %%difference]? (y/n)\n', 's');
+        
+        switch lower(resp3)
+            case {'yes', 'y'}
+                for file_var=1:length(allUnitfiles)
+                    x=load(allUnitfiles(file_var).name);
+                    data=x.data;
+                    data.BFmod=BF_kHz(file_var,2);
+                    save(allUnitfiles(file_var).name,'data');
+                end
+            case {'no', 'n'}
+                return;
         end
-    end
 end
+
 
 allfiles=dir('p*.mat');
 for fileVar=1:length(allfiles)

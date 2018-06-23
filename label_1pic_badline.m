@@ -1,9 +1,6 @@
-function badlines=label_1pic_badline( chinID, PICnum, badlines, CodesDir, MATDataDir)
+function badlines=label_1pic_badline( chinID, PICnum, badlines, MATDataDir)
 
 checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,chinID));
-
-DataDir=[MATDataDir checkDIR.name];
-cd(DataDir);
 
 if ~isempty(badlines(PICnum).vals)
     curFile=dir(sprintf('p%04d*',PICnum));
@@ -17,5 +14,3 @@ if ~isempty(badlines(PICnum).vals)
 end
 
 %     badlines(PICnum).Done=1;
-
-cd(CodesDir);

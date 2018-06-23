@@ -29,6 +29,7 @@ amp_dB = abs(P2(1:ceil(NFFT/2+1)));
 amp_dB(2:end-1) = 2*amp_dB(2:end-1);
 amp_dB=20*log10(amp_dB);
 freq =linspace(0,Fs/2,length(amp_dB));
+ax=nan;
 
 if x_semilog
     if plot_phase

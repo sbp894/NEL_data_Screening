@@ -81,12 +81,20 @@ if isnumeric(varIN)
     else
         FIG.DataDir=[MATDataDir checkDIR.name];
     end
-    FIG.NotUsedDIR=strcat(FIG.DataDir, 'NotUsedDIR', filesep);
+    FIG.NotUsedDIR=strcat(FIG.DataDir, filesep, 'NotUsedDIR', filesep);
+    addpath(FIG.DataDir);
+    addpath(FIG.DataDir);
     
+    cd (FIG.NotUsedDIR);
+    allFiles_notused=[dir('*tc*'); dir('*SR*'); dir('*RLV*'); dir('*SNR*'); dir('*PST*')];
     cd(FIG.DataDir);
-    allFiles=[dir('*tc*'); dir('*SR*'); dir('*RLV*'); dir('*SNR*'); dir('*PST*')];
-    picNums=cellfun(@(x) NELfuns.getPicNum(x), {allFiles.name});
+    allFiles_used=[dir('*tc*'); dir('*SR*'); dir('*RLV*'); dir('*SNR*'); dir('*PST*')];
+    allFiles=[allFiles_used; allFiles_notused];
+    
+    picNums=cellfun(@(x) getPicNum(x), {allFiles.name});
     [sortedPicNums, sortPicInds]=sort(picNums, 'ascend');
+    
+    
     FIG.picFILES2GoThrough={allFiles(sortPicInds).name}';
     FIG.picNUMs2GoThrough=sortedPicNums;
     
@@ -249,11 +257,13 @@ elseif ischar(varIN)
         % runs in two cases. (1) when you hit next picture. (2) As of now
         % TC is not plotted and when p00* is a TC, next picture callback is
         % used. Discussed with MH: Need to plot TC too.
-                
+        
         if FIG.progress.picsDone== FIG.progress.picsTotal
             fprintf('all units are screened for this unit\n');
             close(FIG.num);
             cd(FIG.CodesDir);
+            rmpath(FIG.DataDir);
+            rmpath(FIG.DataDir);
             return;
             
         else
@@ -267,7 +277,7 @@ elseif ischar(varIN)
             screenDataMAT('NextPic_PBcallback');
             if ishandle(ControlParams.FigureNum)
                 FIG=guidata(FIG.num);
-            else 
+            else
                 return;
             end
         else
@@ -353,7 +363,7 @@ elseif ischar(varIN)
         
         
     elseif strcmp(subfunName, 'badLinesRemoveLabel')
-        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, FIG.CodesDir, MATDataDir);
+        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
         
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
@@ -379,13 +389,13 @@ elseif ischar(varIN)
             end
             FIG.badlines(FIG.PICnum).han2=[];
         end
-        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, FIG.CodesDir, MATDataDir);
+        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
         set(FIG.handles.BadLineEdit, 'string', '');
         
         
     elseif strcmp(subfunName, 'badLinesRemoveAction')
-        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, FIG.CodesDir, MATDataDir);
-        FIG.badlines=remove_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, FIG.CodesDir, MATDataDir);
+        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
+        FIG.badlines=remove_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
         
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
@@ -414,7 +424,10 @@ elseif ischar(varIN)
         
         data.spikes{1}(abs_refractory_violation_index,:)=nan;
         save(curFile.name, 'data');
-        
+        if exist([FIG.NotUsedDIR FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum}], 'file')
+    fprintf('this file is discarded\n');
+end
+
         fprintf('Removed spikes violating absolute refractory period for file named %s\n', curFile.name);
         
         % Refresh the plot ----------------
@@ -440,7 +453,7 @@ elseif ischar(varIN)
         end
         
         
-        filename=getFileName(FIG.PICnum);
+        filename=FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum};
         FIG.progress.picsDone=find(strcmp(FIG.picFILES2GoThrough, filename)==1);
         
         TrackUnitNum = getTrackUnit(FIG.picFILES2GoThrough{FIG.progress.picsDone});
@@ -457,7 +470,7 @@ elseif ischar(varIN)
                 screenDataMAT('NextPic_PBcallback');
                 if ishandle(ControlParams.FigureNum)
                     FIG=guidata(FIG.num);
-                else 
+                else
                     return;
                 end
             else
@@ -488,21 +501,24 @@ elseif ischar(varIN)
         % % % % %         FIG=guidata(FIG.num);
         
     elseif strcmp(subfunName, 'discard')
-        fprintf('working in discard\n%s', pwd);
+        %         fprintf('working in discard\n%s', pwd);
         if ~isdir(FIG.NotUsedDIR)
             mkdir(FIG.NotUsedDIR);
         end
         
         movefile(getFileName(FIG.PICnum), [FIG.NotUsedDIR getFileName(FIG.PICnum)]);
+        fprintf('file moved to %s \n', FIG.NotUsedDIR);
         
     elseif strcmp(subfunName, 'undo_discard')
-        fprintf('working in undo_discard\n');
+        %         fprintf('working in undo_discard\n');
         if exist([FIG.NotUsedDIR getFileName(FIG.PICnum)], 'file')
-            movefile([FIG.NotUsedDIR getFileName(FIG.PICnum)], getFileName(FIG.PICnum));
+            movefile([FIG.NotUsedDIR FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum}], FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum});
         end
         
     elseif strcmp(subfunName, 'closeGUI')
         cd(FIG.CodesDir);
+        rmpath(FIG.DataDir);
+        rmpath(FIG.DataDir);
         close(FIG.num);
         return;
     end
@@ -518,6 +534,7 @@ else
     guidata(FIG.num, FIG);
     figure(FIG.num);
 end
+
 
 curPicInd=FIG.picNUMs2GoThrough(FIG.progress.picsDone);
 FIG.ScreeningSummary(curPicInd).filename=getFileName(curPicInd);

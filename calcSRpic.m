@@ -17,55 +17,62 @@ function [SR_sps,lineSRs_sps]=calcSRpic(PICnum,exclude_lines,x,SRwin_sec)
 
 %%%% Verify in passed parameters if needed
 if ~exist('exclude_lines','var')
-   exclude_lines=[];
+    exclude_lines=[];
 end
 if ~exist('x','var')
-   x=[];
+    x=[];
 end
 
 % Only load PICnum if needed
 if isempty(x)
     fileCur=dir(sprintf('p%04d*',PICnum));
-    [~,~,ext]=fileparts(fileCur.name);
-    
-    if strcmp(ext, '.m')
-        x=loadPic(PICnum);
-    elseif strcmp(ext, '.mat')
-        x=load(fileCur.name);
+    if ~isempty(fileCur)
+        [~,~,ext]=fileparts(fileCur.name);
+        
+        if strcmp(ext, '.m')
+            x=loadPic(PICnum);
+        elseif strcmp(ext, '.mat')
+            x=load(fileCur.name);
+            x=x.data;
+        end
+    else
+        FIG=guidata(1001); % hardcoded, fig num for screening GUI
+        fileCur=dir(sprintf('%sp%04d*',FIG.NotUsedDIR, PICnum));
+        x=load([FIG.NotUsedDIR fileCur.name]);
         x=x.data;
     end
 end
 
 % Verify this picture has spike data
 if ~isfield(x,'spikes')
-   set(FIG.handles.Comments, 'string', sprintf('*****\n   ERROR:  NO SPIKES in PICnum=%d\n*****\n',PICnum));
-   beep
-   SR_sps=NaN;
-   lineSRs_sps=[NaN NaN];
-   return;
+    set(FIG.handles.Comments, 'string', sprintf('*****\n   ERROR:  NO SPIKES in PICnum=%d\n*****\n',PICnum));
+    beep
+    SR_sps=NaN;
+    lineSRs_sps=[NaN NaN];
+    return;
 end
 
 % Compute spontaneous rate for each line
 spikeTimes = x.spikes{1};
 if ~exist('SRwin_sec','var')
-
-   if x.Hardware.Trigger.StmOn+x.Hardware.Trigger.StmOff-200 > 250
-      OFFSET=200;
-   else
-      OFFSET=50;
-   end
-  
-   SRwin_sec(1)= (x.Hardware.Trigger.StmOn + OFFSET)/1000;   % Default is 200 msec beyond end of stimulus, OR 50 if shorter
-   SRwin_sec(2)= (x.Hardware.Trigger.StmOn+x.Hardware.Trigger.StmOff)/1000;
+    
+    if x.Hardware.Trigger.StmOn+x.Hardware.Trigger.StmOff-200 > 250
+        OFFSET=200;
+    else
+        OFFSET=50;
+    end
+    
+    SRwin_sec(1)= (x.Hardware.Trigger.StmOn + OFFSET)/1000;   % Default is 200 msec beyond end of stimulus, OR 50 if shorter
+    SRwin_sec(2)= (x.Hardware.Trigger.StmOn+x.Hardware.Trigger.StmOff)/1000;
 end
 spont_dur_sec = diff(SRwin_sec);
 
 lineSRs_sps=[];
 for line = 1:x.Stimuli.fully_presented_lines
-   if ~(sum(ismember(x.Stimuli.bad_lines,line))+sum(ismember(exclude_lines,line)))
-      spikeIndices = find( (spikeTimes(:,1) == line ) );
-      Nsps_spont = length (find((spikeTimes(spikeIndices,2) >= SRwin_sec(1)) & (spikeTimes(spikeIndices,2) <= SRwin_sec(2))));
-      lineSRs_sps(size(lineSRs_sps,1)+1,:)=[line Nsps_spont/spont_dur_sec];
-   end
+    if ~(sum(ismember(x.Stimuli.bad_lines,line))+sum(ismember(exclude_lines,line)))
+        spikeIndices = find( (spikeTimes(:,1) == line ) );
+        Nsps_spont = length (find((spikeTimes(spikeIndices,2) >= SRwin_sec(1)) & (spikeTimes(spikeIndices,2) <= SRwin_sec(2))));
+        lineSRs_sps(size(lineSRs_sps,1)+1,:)=[line Nsps_spont/spont_dur_sec];
+    end
 end
 SR_sps=mean(lineSRs_sps(:,2));

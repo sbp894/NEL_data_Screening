@@ -11,7 +11,17 @@ function FIG=ReviewUnitTriggeringMAT(FIG)
 checkRASTER=FIG.checkRASTER;
 
 fileCur=dir(sprintf('p%04d*',FIG.PICnum));
-x=load(fileCur.name);
+
+if ~isempty(fileCur)
+    x=load(fileCur.name);
+elseif ~isempty(dir(sprintf('%sp%04d*',FIG.NotUsedDIR , FIG.PICnum)))
+    fileCur=dir(sprintf('%sp%04d*',FIG.NotUsedDIR , FIG.PICnum));
+    x=load([FIG.NotUsedDIR  fileCur.name]);
+    warning('discarded file');
+    fprintf('discarded file\n');
+else 
+    error('not found');
+end
 x=x.data;
 if isfield(x.Stimuli, 'bad_lines')
     FIG.badlines(FIG.PICnum).vals=x.Stimuli.bad_lines;

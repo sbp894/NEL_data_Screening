@@ -1,12 +1,9 @@
 %
 %
 %
-function badlines=remove_1pic_badline(chinID, PICnum, badlines, CodesDir, MATDataDir)
+function badlines=remove_1pic_badline(chinID, PICnum, badlines, MATDataDir)
 
 checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,chinID));
-
-DataDir=[MATDataDir checkDIR.name];
-cd(DataDir);
 
 if ~isempty(badlines(PICnum).vals)
     curFile=dir(sprintf('p%04d*',PICnum));
@@ -64,5 +61,3 @@ if ~isempty(badlines(PICnum).vals)
     fprintf('Updated (NAN for badlines) file named %s\n', curFile.name);
     save(curFile.name, 'data');
 end
-
-cd(CodesDir);

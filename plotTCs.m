@@ -53,7 +53,7 @@ if PLOTyes
     DataMarkStyle='.';
     DataFitStyle='-';
     
-    xmin=0.03; xmax=39; ymin=-20; ymax=110;
+    xmin=0.03; xmax=39; ymin=-21; ymax=110;
     normt=load('normema.mat');
     normt=normt.normt;
     legtext='';
