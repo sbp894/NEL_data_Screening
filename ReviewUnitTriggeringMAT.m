@@ -65,7 +65,7 @@ if checkRASTER
         FIG=PICviewMAT(FIG, FIG.PICnum,'', FIG.num);
         [SR_sps,~,~,~] = PIC_calcSR(FIG.PICnum);
         nComLines=nComLines+1;
-        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nMEAN SPONT RATE = %.1f sp/sec\nCF=%.1f kHz : %c=%.1f dB SPL : Q10=%.1f\n',SR_sps, FIG.TCdata.BF_kHz, char(920), FIG.TCdata.Thresh_dBSPL, FIG.TCdata.Q10));
+        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nMEAN SPONT RATE = %.1f sp/sec\nCF=%.1f kHz : %c=%.1f dB SPL : Q10=%.1f',SR_sps, FIG.TCdata.BF_kHz, char(920), FIG.TCdata.Thresh_dBSPL, FIG.TCdata.Q10));
         beep
     else
         guidata(FIG.num, FIG);
@@ -73,8 +73,22 @@ if checkRASTER
         FIG=guidata(FIG.num);
     end
 end
-
-
+if isfield(x.Line, 'file')
+    filesPlayed=cell2mat(cellfun(@(x) ischar(x), x.Line.file', 'uniformoutput', false));
+    cleanSpeechInds= find(cell2mat(cellfun(@(x) contains(x, '_S_P'), x.Line.file(filesPlayed)', 'uniformoutput', false)), 1);
+    audio_fName= x.Line.file{cleanSpeechInds};
+    audio_fName=strrep(audio_fName, 'C:\NEL\', '');
+    audio_fName=strrep(audio_fName, '\', filesep);
+    audio_fName=strrep(audio_fName, ' ', ''); %remove blankspace at the end
+    if exist(audio_fName, 'file')
+        calib_fName=getFileName(FIG.calib_PicNum);
+        plotYes=0;
+        verbose=0;
+        [filteredSPL, ~]=CalibFilter_outSPL(audio_fName, calib_fName, plotYes, verbose);
+        FIG.dB_SPL= filteredSPL-x.Line.attens.list(find(cleanSpeechInds, 1 ), 2);
+        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nIntensity= %.1f dB SPL', FIG.dB_SPL));
+    end
+end
 set(FIG.handles.Comments, 'MAX', nComLines);
 set(FIG.handles.Comments, 'string', FIG.ComStr);
 return;

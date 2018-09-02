@@ -8,7 +8,8 @@ figure(hanTC);
 clf;
 set (gcf, 'Units', 'normalized', 'Position', [.1 .1 .8 .8]);
 hold on;
-LineWidth=2;
+lwLines=2;
+lwHeavy=5;
 MarkerSize=15;
 
 %%
@@ -43,7 +44,7 @@ elseif length(allUnitfiles)<length(allTCfiles)
     cd(CodesDir);
     error('There are %d TC files, but %d Unit files. Delete extra TC or move it to a different folder', length(allTCfiles), length(allUnitfiles));
 else
-    BF_kHz=zeros(length(allTCfiles),3);
+    BF_kHz=zeros(length(allTCfiles),5); % track | unit | BF from attenuation | BF from SPL | percentage difference
     for file_var=1:length(allTCfiles)
         x=load(allTCfiles(file_var).name);
         x=x.data;
@@ -56,15 +57,15 @@ else
         end
         TCdata(:,4)=trifilt(TCdata(:,3)',TFiltWidthTC)';
         if isfield(x.Thresh,'BF')
-            BF_kHz(file_var,1)=x.Thresh.BF;
+            BF_kHz(file_var,3)=x.Thresh.BF;
         else
-            BF_kHz(file_var,1)=nan;
+            BF_kHz(file_var,3)=nan;
         end
         WhatTCData=4;
-        BF_kHz(file_var,2)=TCdata(TCdata(:,WhatTCData)==min(TCdata(:,WhatTCData)),1);
-        h1=semilogx(TCdata(:,1),TCdata(:,4),'LINEWIDTH',LineWidth);
+        BF_kHz(file_var,4)=TCdata(TCdata(:,WhatTCData)==min(TCdata(:,WhatTCData)),1);
+        h1=semilogx(TCdata(:,1),TCdata(:,4),'LINEWIDTH',lwLines);
         color = get(h1, 'Color');
-        semilogx(BF_kHz(file_var,2),min(TCdata(:,WhatTCData)),'x','color',color ,'MARKERSIZE',MarkerSize);
+        semilogx(BF_kHz(file_var,4),min(TCdata(:,WhatTCData)),'x','color',color ,'markersize',MarkerSize, 'linew', lwHeavy);
         
         x=load(allUnitfiles(file_var).name);
         data=x.data;
@@ -73,6 +74,8 @@ else
         picNum=temp(1);
         TCtrack=temp(2);
         TCunit=temp(3);
+        BF_kHz(file_var,1)=TCtrack;
+        BF_kHz(file_var,2)=TCunit;
         
         if TCtrack==data.track && TCunit==data.No
             fprintf('PIC %s is for Unit file %s with TrackNum %d and UnitNum %d\n', ...
@@ -103,12 +106,14 @@ if ~isempty(mismatch_names)
             mismatch_names(errVar).picNumStart, mismatch_names(errVar).picNumEnd, mismatch_names(errVar).next_track, mismatch_names(errVar).next_unit), 's');
         
         
-        if strcmp(resp0, 'YES')
+        if strcmp(resp0, 'y')
             for picNum=mismatch_names(errVar).picNumStart:mismatch_names(errVar).picNumEnd
                 fNameOld=getFileName(picNum);
-                fNameNew=strrep(fNameOld, sprintf('_u%d_%02d_',mismatch_names(end).old_track,mismatch_names(end).old_unit), sprintf('_u%d_%02d_',mismatch_names(end).next_track,mismatch_names(end).next_unit));
+                fNameNew=strrep(fNameOld, sprintf('_u%d_%02d_',mismatch_names(errVar).old_track,mismatch_names(errVar).old_unit), sprintf('_u%d_%02d_',mismatch_names(errVar).next_track,mismatch_names(errVar).next_unit));
                 fprintf('changed file %s -- to -> %s\n', fNameOld, fNameNew);
-                movefile(fNameOld, fNameNew);
+                if ~isequal(fNameOld, fNameNew)
+                    movefile(fNameOld, fNameNew);
+                end
             end
         end
     end
@@ -119,7 +124,8 @@ set(gcf,'visible','on');
 xlabel('Frequncy (kHz)');
 ylabel('Threshold (SPL)');
 title(sprintf('Tuning Curves for Chin %d',ChinNum));
-set(gca, 'xscale', 'log');
+set(gca, 'xscale', 'log', 'xtick', [200 500 1e3 2e3 5e3 10e3 12e3]/1e3);
+grid on;
 % resp2=questdlg('TCs and track_units look good!', 'Hit NEXT to compare the BF values','STOP','NEXT','NEXT');
 resp2=input('All good? (y/n)', 's');
 
@@ -127,17 +133,19 @@ set(gcf,'visible','off');
 
 switch lower(resp2)
     case {'y', 'yes'}
-        BF_kHz(:,3)=100*(BF_kHz(:,1)-BF_kHz(:,2))./BF_kHz(:,2);
-        disp(BF_kHz);
+        BF_kHz(:,5)=100*(BF_kHz(:,3)-BF_kHz(:,4))./BF_kHz(:,4);
+        fprintf('--------------------------------------------\n--------------------------------------------\n');
+        fprintf('[Track| Unit| BF_atten| BF_SPL| %%difference]\n');
+        fprintf('%.0f \t %.0f \t %.2f \t %.2f \t %.2f \n', BF_kHz');
         %     resp3=input('Does everything look okay [BF from atten || BF from SPL|| %%difference]? (say yes)', 'Confirm to add BFfromSPL field to Unit files','NO','YES','NO');
-        resp3=input('Does everything look okay [BF from atten || BF from SPL|| %%difference]? (y/n)\n', 's');
+        resp3=input('Does everything look okay [BF from atten || BF from SPL|| %%difference]? (y/n)', 's');
         
         switch lower(resp3)
             case {'yes', 'y'}
                 for file_var=1:length(allUnitfiles)
                     x=load(allUnitfiles(file_var).name);
                     data=x.data;
-                    data.BFmod=BF_kHz(file_var,2);
+                    data.BFmod=BF_kHz(file_var,4);
                     save(allUnitfiles(file_var).name,'data');
                 end
             case {'no', 'n'}

@@ -34,29 +34,33 @@ ax=nan;
 if x_semilog
     if plot_phase
         ax(1)=subplot(211);
+    else
+        ax=gca;
     end
-    semilogx(freq,amp_dB);
+    semilogx(freq,amp_dB, 'linew', 2);
     xlabel('f (Hz)');
     ylabel('20*log10(|P1(f)|), dB');
     title(title_str);
     %     xlim([.1 Fs/2]);
     if plot_phase
         ax(2)=subplot(212);
-        semilogx(freq,unwrap(angle(P2(1:ceil(NFFT/2+1)))));
+        semilogx(freq,unwrap(angle(P2(1:ceil(NFFT/2+1)))), 'linew', 2);
         title('Phase Plot');
         linkaxes(ax, 'x');
     end
 else
     if plot_phase
         ax(1)=subplot(211);
+    else
+        ax=gca;
     end
-    plot(freq,amp_dB);
+    plot(freq,amp_dB, 'linew', 2);
     xlabel('f (Hz)');
     ylabel('Amplitude (dB)');
     
     if plot_phase
         ax(2)=subplot(212);
-        plot(freq,unwrap(angle(P2(1:ceil(NFFT/2+1)))));
+        plot(freq,unwrap(angle(P2(1:ceil(NFFT/2+1)))), 'linew', 2);
         ylabel('Phase (rad)');
         title('Phase Plot');
     end

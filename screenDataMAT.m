@@ -66,7 +66,7 @@ end
 
 
 if isnumeric(varIN)
-    
+    warning on;
     % function that runs when screendataMAT is called the very first time
     ChinID=varIN;
     FIG.ChinID=ChinID;
@@ -82,6 +82,11 @@ if isnumeric(varIN)
         FIG.DataDir=[MATDataDir checkDIR.name];
     end
     FIG.NotUsedDIR=strcat(FIG.DataDir, filesep, 'NotUsedDIR', filesep);
+    if ~isdir(FIG.NotUsedDIR)
+        mkdir(FIG.NotUsedDIR);
+    end
+    
+    
     addpath(FIG.DataDir);
     addpath(FIG.DataDir);
     
@@ -263,7 +268,6 @@ elseif ischar(varIN)
             close(FIG.num);
             cd(FIG.CodesDir);
             rmpath(FIG.DataDir);
-            rmpath(FIG.DataDir);
             return;
             
         else
@@ -425,9 +429,9 @@ elseif ischar(varIN)
         data.spikes{1}(abs_refractory_violation_index,:)=nan;
         save(curFile.name, 'data');
         if exist([FIG.NotUsedDIR FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum}], 'file')
-    fprintf('this file is discarded\n');
-end
-
+            fprintf('this file is discarded\n');
+        end
+        
         fprintf('Removed spikes violating absolute refractory period for file named %s\n', curFile.name);
         
         % Refresh the plot ----------------
@@ -502,9 +506,6 @@ end
         
     elseif strcmp(subfunName, 'discard')
         %         fprintf('working in discard\n%s', pwd);
-        if ~isdir(FIG.NotUsedDIR)
-            mkdir(FIG.NotUsedDIR);
-        end
         
         movefile(getFileName(FIG.PICnum), [FIG.NotUsedDIR getFileName(FIG.PICnum)]);
         fprintf('file moved to %s \n', FIG.NotUsedDIR);
@@ -517,7 +518,6 @@ end
         
     elseif strcmp(subfunName, 'closeGUI')
         cd(FIG.CodesDir);
-        rmpath(FIG.DataDir);
         rmpath(FIG.DataDir);
         close(FIG.num);
         return;
