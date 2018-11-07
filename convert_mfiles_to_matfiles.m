@@ -25,7 +25,13 @@ else
         if isempty(checkDIR)
             error('No such directory for animal number %d',ChinID);
         elseif length(checkDIR)~=1
-            error('Multiple directories. Change!');
+            fprintf('Multiple directories found.\n');
+            for dirVar= 1:length(checkDIR)
+                fprintf('(%d)-%s\n', dirVar, checkDIR(dirVar).name);
+            end
+            
+            chosen_dir_num= input('Which one? \n');
+            allDataDir{chinVar}=[NELDataRepository checkDIR(chosen_dir_num).name];
         else
             allDataDir{chinVar}=[NELDataRepository checkDIR.name];
         end
@@ -54,9 +60,11 @@ for dirVar=1:length(allDataDir)
         if strcmp(mfilename(1),'.') % Don't copy system dirs
             %root dirs
         elseif strcmp(mfilename(end-1:end),'.m') % Copy data
-            eval( strcat('data = ',mfilename(1:length(mfilename)-2),';'));
-            matfilename=[OutDir mfilename(1:end-1) 'mat'];
-            save(matfilename,'data');
+            if strcmp(mfilename(1), 'a')
+                eval( strcat('data = ',mfilename(1:length(mfilename)-2),';'));
+                matfilename=[OutDir mfilename(1:end-1) 'mat'];
+                save(matfilename,'data');
+            end
         elseif allfiles(file_var).isdir  % Copy directories
             copyfile(mfilename,[OutDir mfilename filesep]);
         else % Copy other files

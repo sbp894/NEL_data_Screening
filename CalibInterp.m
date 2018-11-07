@@ -21,7 +21,7 @@ elseif cal_freq_kHz>max(calib(:,1))  %
 end
 
 % Find closest frequency for which calibration data exists
-[x,i]=min(abs(cal_freq_kHz-calib(:,1)));  % i=index of closest point
+[~,i]=min(abs(cal_freq_kHz-calib(:,1)));  % i=index of closest point
     
 if(calib(i,1)<cal_freq_kHz)
    %linear interpolation of frequency
