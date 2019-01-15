@@ -31,8 +31,8 @@ elseif length(checkDIR)~=1
     chosen_dir_num= input('Which one? \n');
     DataDir=[MATDataDir checkDIR(chosen_dir_num).name];
     
-%     error('Multiple directories. Change!');
-
+    %     error('Multiple directories. Change!');
+    
 else
     DataDir=[MATDataDir checkDIR.name];
 end

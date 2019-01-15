@@ -41,4 +41,3 @@ for freqVar= 1:length(max_dBSPL)
     
 end
 return;
-

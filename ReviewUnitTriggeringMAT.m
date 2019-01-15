@@ -2,7 +2,7 @@ function FIG=ReviewUnitTriggeringMAT(FIG)
 % FIG=ReviewUnitTriggeringMAT(FIG)
 % Created: SP (Aug 2017)
 % Called from screenDataMAT
-% Original function: ReviewUnitTriggering(Track,Unit) 
+% Original function: ReviewUnitTriggering(Track,Unit)
 % Created: M. Heinz 30Dec2005
 %
 % Goes through all pictures for a unit and reviews: Triggering, Errors, and
@@ -19,7 +19,7 @@ elseif ~isempty(dir(sprintf('%sp%04d*',FIG.NotUsedDIR , FIG.PICnum)))
     x=load([FIG.NotUsedDIR  fileCur.name]);
     warning('discarded file');
     fprintf('discarded file\n');
-else 
+else
     error('not found');
 end
 x=x.data;
@@ -36,7 +36,7 @@ if isfield(x.General,'trigger')
     if sum(strcmp(deblank(x.General.trigger),{'Poor','Fair'}))
         beep
     end
-else 
+else
     FIG.trigger='---';
 end
 
@@ -44,7 +44,7 @@ if isfield(x.General,'comment')
     nComLines=nComLines+1;
     FIG.ComStr=strcat(FIG.ComStr, sprintf('\nComment: %s\n',upper(x.General.comment)));
     FIG.comment_in_pic=x.General.comment;
-else 
+else
     FIG.comment_in_pic='';
 end
 
