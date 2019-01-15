@@ -1,11 +1,7 @@
-clear;
 
-xdata = 5:0.2:40;
-ydata = min(25,xdata) + randn(size(xdata));
-tc_piecewise_lin_interp_mod_cost(xdata, ydata)
-[theta,yFitted]= tc_piecewise_lin_interp_mod_cost(xdata, ydata);
+audio_fName='/media/parida/DATAPART1/Matlab/SNRenv/SFR_sEPSM/shorter_stim/FLN_Stim_S_P.wav';
+calib_fName= '/media/parida/SP/temp/p0010_calib.mat';
 
-clf;
-hold on
-plot(xdata, ydata);
-plot(xdata, yFitted, 'r');
+plotYes=1 ;
+verbose=1;
+[filteredSPL, originalSPL]=CalibFilter_outSPL(audio_fName, calib_fName, plotYes, verbose)

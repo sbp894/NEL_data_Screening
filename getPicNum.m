@@ -15,4 +15,3 @@ end
 picNum=NaN;
 
 return;
-

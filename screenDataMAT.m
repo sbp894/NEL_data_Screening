@@ -76,8 +76,15 @@ if isnumeric(varIN)
     checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,ChinID));
     if isempty(checkDIR)
         error('No such directory for animal number %d',ChinID);
+    
     elseif length(checkDIR)~=1
-        error('Multiple directories. Change!');
+        if length(checkDIR)>1
+            checkDIR= checkDIR(contains({checkDIR.name}', '_AN_'));
+            FIG.DataDir=[MATDataDir checkDIR.name];
+        else
+            error('What''s going on?');
+        end
+        
     else
         FIG.DataDir=[MATDataDir checkDIR.name];
     end

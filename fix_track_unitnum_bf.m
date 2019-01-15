@@ -21,7 +21,18 @@ checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,ChinNum));
 if isempty(checkDIR)
     error('No such directory for animal number %d',ChinNum);
 elseif length(checkDIR)~=1
-    error('Multiple directories. Change!');
+    
+    
+    fprintf('Multiple directories found.\n');
+    for dirVar= 1:length(checkDIR)
+        fprintf('(%d)-%s\n', dirVar, checkDIR(dirVar).name);
+    end
+    
+    chosen_dir_num= input('Which one? \n');
+    DataDir=[MATDataDir checkDIR(chosen_dir_num).name];
+    
+%     error('Multiple directories. Change!');
+
 else
     DataDir=[MATDataDir checkDIR.name];
 end

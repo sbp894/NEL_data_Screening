@@ -62,7 +62,7 @@ calibUpdated_dB= 0*fft_stim;
 [minFreq, minFreqInd]=min(calibOrgFreqs); %#ok<*ASGLU>
 BelowRange_freq_inds=abs(fft_freq)<minFreq;
 % calibUpdated_dB(BelowRange_freq_inds)=calibOrgMaxOutput(minFreqInd);
-calibUpdated_dB(BelowRange_freq_inds)=baseline_dB; %calibOrgMaxOutput(minFreqInd);
+calibUpdated_dB(BelowRange_freq_inds)=-100; %calibOrgMaxOutput(minFreqInd);
 
 
 [maxFreq, maxFreqInd]=max(calibOrgFreqs);

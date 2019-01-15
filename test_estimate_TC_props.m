@@ -25,7 +25,7 @@ for chinVar= 1:length(allDataDirs)
     calib_data= calib_data.data.CalibData;
     
     
-    parfor tcVar=1:length(all_tc_files)
+    parfor tcVar= 1:length(all_tc_files)
         figure(figHan); clf;
         cur_tc_file= [DataDir all_tc_files(tcVar).name];
         temp_data= load(cur_tc_file);
