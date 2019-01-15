@@ -13,15 +13,20 @@ checkRASTER=FIG.checkRASTER;
 fileCur=dir(sprintf('p%04d*',FIG.PICnum));
 
 if ~isempty(fileCur)
+    FIG.discardedTag= false;
     x=load(fileCur.name);
+
 elseif ~isempty(dir(sprintf('%sp%04d*',FIG.NotUsedDIR , FIG.PICnum)))
+    FIG.discardedTag= true;
     fileCur=dir(sprintf('%sp%04d*',FIG.NotUsedDIR , FIG.PICnum));
     x=load([FIG.NotUsedDIR  fileCur.name]);
-    warning('discarded file');
-    fprintf('discarded file\n');
+
 else
-    error('not found');
+    set(FIG.handles.UndoDiscard, 'Enable', 'off');
+    set(FIG.handles.discard, 'Enable', 'off');
+    error('not found (and need to update logic here)'); 
 end
+
 x=x.data;
 if isfield(x.Stimuli, 'bad_lines')
     FIG.badlines(FIG.PICnum).vals=x.Stimuli.bad_lines;
@@ -61,8 +66,16 @@ if isfield(x.General,'run_errors')
 end
 
 if checkRASTER
-    if ~strcmp('tc',getTAG(getFileName(FIG.PICnum)))
+    if ~strcmp('tc',getTAG(getFileName_inDir(FIG)))
         FIG=PICviewMAT(FIG, FIG.PICnum,'', FIG.num);
+        if FIG.discardedTag % means discarded
+            set(FIG.handles.UndoDiscard, 'Enable', 'on');
+            set(FIG.handles.discard, 'Enable', 'off');
+        else % means exists in main data dir
+            set(FIG.handles.UndoDiscard, 'Enable', 'off');
+            set(FIG.handles.discard, 'Enable', 'on');
+        end
+        
         [SR_sps,~,~,~] = PIC_calcSR(FIG.PICnum);
         nComLines=nComLines+1;
         FIG.ComStr=strcat(FIG.ComStr, sprintf('\nMEAN SPONT RATE = %.1f sp/sec\nCF=%.1f kHz : %c=%.1f dB SPL : Q10=%.1f',SR_sps, FIG.TCdata.BF_kHz, char(920), FIG.TCdata.Thresh_dBSPL, FIG.TCdata.Q10));

@@ -10,15 +10,9 @@
 % Comments:
 % Need to add TCs
 % Need to add discard button
-% Need to udpate moving by pic-# basis
 
 
 function screenDataMAT(varIN)
-% function allDone=screenDataMAT(varIN)
-
-% allDone=0;
-
-
 
 if nargin==0
     error('Argument should be chinID without Q');
@@ -44,6 +38,7 @@ figure(FIG.num);
 FIG=guidata(FIG.num);
 FIG.CodesDir=CodesDir;
 FIG.checkRASTER=1;
+FIG.verbose= false;
 
 if ~isfield(FIG, 'num')
     FIG.num=ControlParams.FigureNum;
@@ -93,8 +88,6 @@ if isnumeric(varIN)
         mkdir(FIG.NotUsedDIR);
     end
     
-    
-    addpath(FIG.DataDir);
     addpath(FIG.DataDir);
     
     cd (FIG.NotUsedDIR);
@@ -152,35 +145,6 @@ if isnumeric(varIN)
         warning('Hit the end already');
     end
     
-    % % %     if length(calibFile)~=1
-    % % %         fprintf('Multiple calib files. Using the last one ---%s\n', getFileName(FIG.calib_PicNum));
-    % % %     end
-    
-    
-    
-    % % % % %     FIG.picList=findPics('*',[FIG.TrackNum, FIG.UnitNum]);
-    % % % % %     if isempty(FIG.picList) % No units in track-1, go to track-2 with checkStop=1
-    % % % % %         FIG.TrackNum=FIG.TrackNum+1;
-    % % % % %         FIG.UnitNum=1;
-    % % % % %         FIG.CheckStop=1;
-    % % % % %     else % Do track-1, unit-1
-    % % % % %         FIG.PICnum=FIG.picList(1);
-    % % % % %         if contains(getFileName(FIG.PICnum), 'tc')
-    % % % % %             FIG.numPICsdone=1; % to skip tuning curve, else should initialize to 0
-    % % % % %             FIG.tcPicNum=FIG.PICnum;
-    % % % % %         else
-    % % % % %             FIG.numPICsdone=0; %if somehow tc is not the first file
-    % % % % %             warning('TC is not the first picture?????? May result in an error. ');
-    % % % % %         end
-    % % % % %         FIG=ReviewUnitTriggeringMAT(FIG);
-    % % % % %         if ~isempty(FIG.badlines(FIG.PICnum).vals)
-    % % % % %             set(FIG.handles.BadLineEdit, 'string', num2str(FIG.badlines(FIG.PICnum).vals));
-    % % % % %             guidata(FIG.num, FIG);
-    % % % % %             screenDataMAT('Badlines_Editcallback');
-    % % % % %             FIG=guidata(FIG.num);
-    % % % % %         end
-    % % % % %     end
-    
 elseif ischar(varIN)
     subfunName=varIN;
     if strcmp(subfunName, 'PrevPic_PBcallback')
@@ -194,8 +158,9 @@ elseif ischar(varIN)
             FIG.PICnum= FIG.picNUMs2GoThrough(FIG.progress.picsDone);
         end
         
-        if contains(getFileName(FIG.PICnum), 'tc')
-            FIG.tcPicNum=FIG.PICnum;
+        if contains(getFileName_inDir(FIG), 'tc')
+            tcfiles= dir('*tc*.mat');
+            FIG.tcPicNum=getPicNum(tcfiles(find(cellfun(@(x) getPicNum(x), {tcfiles.name}')<FIG.PICnum, 1, 'last')).name);
             guidata(FIG.num, FIG);
             screenDataMAT('PrevPic_PBcallback');
             FIG=guidata(FIG.num);
@@ -204,57 +169,7 @@ elseif ischar(varIN)
             screenDataMAT('RefreshPic_PBcallback');
             FIG=guidata(FIG.num);
         end
-        
-        %%
-        % % % % %         FIG.picList=findPics('*',[FIG.TrackNum,FIG.UnitNum]);
-        % % % % %
-        % % % % %         if FIG.numPICsdone > 2 % Simply case of reducing numPICsdone by 1
-        % % % % %             FIG.numPICsdone = FIG.numPICsdone-1;
-        % % % % %             FIG.PICnum=FIG.picList(FIG.numPICsdone);
-        % % % % %
-        % % % % %             % All set to call RefreshPic_PBcallback
-        % % % % %             guidata(FIG.num, FIG);
-        % % % % %             screenDataMAT('RefreshPic_PBcallback');
-        % % % % %             FIG=guidata(FIG.num);
-        % % % % %
-        % % % % %         else % Either a (same track & new unit) OR (new track)
-        % % % % %             if FIG.TrackNum==1 && FIG.UnitNum==1
-        % % % % %                 warning('No previous picture');
-        % % % % %                 FIG.numPICsdone = 2;
-        % % % % %                 guidata(FIG.num, FIG);
-        % % % % %             else
-        % % % % %                 FIG.PICnum=FIG.picList(1)-1;
-        % % % % %                 filename=getFileName(FIG.PICnum);
-        % % % % %                 TrackUnitNum=getTrackUnit(filename);
-        % % % % %
-        % % % % %                 while contains(filename, 'tc')
-        % % % % %                     %                     warning('Should throw weird results when only TC is saved for a unit.');
-        % % % % %                     FIG.tcPicNum=FIG.PICnum;
-        % % % % %                     unit_files=dir([FIG.DataDir filesep 'Unit*.mat']);
-        % % % % %                     unit_files={unit_files.name};
-        % % % % %                     track_unit_mat=cell2mat(cellfun(@(x) sscanf(x, 'Unit_%d_%02d.mat'), unit_files, 'UniformOutput', false))';
-        % % % % %                     ind_cur= find(ismember(track_unit_mat, TrackUnitNum, 'rows'));
-        % % % % %                     FIG.PICnum=FIG.PICnum-1;
-        % % % % %                     FIG.TrackNum=track_unit_mat(ind_cur-1, 1);
-        % % % % %                     FIG.UnitNum=track_unit_mat(ind_cur-1, 2);
-        % % % % %                     FIG.picList=findPics('*',[FIG.TrackNum,FIG.UnitNum]);
-        % % % % %                     filename=getFileName(FIG.picList(end));
-        % % % % %                     TrackUnitNum=getTrackUnit(filename);
-        % % % % %                 end
-        % % % % %
-        % % % % %                 FIG.TrackNum=TrackUnitNum(1);
-        % % % % %                 FIG.UnitNum=TrackUnitNum(2);
-        % % % % %                 FIG.picList=findPics('*',[FIG.TrackNum,FIG.UnitNum]);
-        % % % % %                 FIG.numPICsdone=length(FIG.picList);
-        % % % % %
-        % % % % %                 % All set to call RefreshPic_PBcallback
-        % % % % %                 guidata(FIG.num, FIG);
-        % % % % %                 screenDataMAT('RefreshPic_PBcallback');
-        % % % % %                 FIG=guidata(FIG.num);
-        % % % % %
-        % % % % %             end
-        % % % % %         end
-        
+                
     elseif strcmp(subfunName, 'RefreshPic_PBcallback') % (Probably) a useless callback
         
         FIG=ReviewUnitTriggeringMAT(FIG);
@@ -283,7 +198,7 @@ elseif ischar(varIN)
             FIG.PICnum= FIG.picNUMs2GoThrough(FIG.progress.picsDone);
         end
         
-        if contains(getFileName(FIG.PICnum), 'tc')
+        if contains(getFileName_inDir(FIG), 'tc')
             FIG.tcPicNum=FIG.PICnum;
             guidata(FIG.num, FIG);
             screenDataMAT('NextPic_PBcallback');
@@ -297,51 +212,6 @@ elseif ischar(varIN)
             screenDataMAT('RefreshPic_PBcallback');
             FIG=guidata(FIG.num);
         end
-        
-        % % % % %         if ~FIG.Stopflag % Go on till there is either units or tracks left. Else stop.
-        % % % % %             FIG.picList=findPics('*',[FIG.TrackNum,FIG.UnitNum]);
-        % % % % %             if isempty(FIG.picList) % No pics in current track & unit
-        % % % % %                 if FIG.CheckStop % Checkstop is yes means all units of last track are done
-        % % % % %                     FIG.Stopflag=1; % ^ and no unit for current. We have hit the end of the directory.
-        % % % % %                 else % Current track ended
-        % % % % %                     FIG.TrackNum=FIG.TrackNum+1;
-        % % % % %                     FIG.UnitNum=1;
-        % % % % %                     FIG.CheckStop=1;
-        % % % % %
-        % % % % %                     guidata(FIG.num, FIG);
-        % % % % %                     screenDataMAT('NextPic_PBcallback');
-        % % % % %                     FIG=guidata(FIG.num);
-        % % % % %                 end
-        % % % % %
-        % % % % %
-        % % % % %             else % There are pics for this track & unit. Check whether hit the end or not
-        % % % % %                 if FIG.numPICsdone<length(FIG.picList) % Pics left for this track & unit
-        % % % % %                     FIG.numPICsdone=FIG.numPICsdone+1;
-        % % % % %                     FIG.PICnum=FIG.picList(FIG.numPICsdone);
-        % % % % %                     FIG=ReviewUnitTriggeringMAT(FIG);
-        % % % % %                     if ~isempty(FIG.badlines(FIG.PICnum).vals)
-        % % % % %                         set(FIG.handles.BadLineEdit, 'string', num2str(FIG.badlines(FIG.PICnum).vals));
-        % % % % %                         guidata(FIG.num, FIG);
-        % % % % %                         screenDataMAT('Badlines_Editcallback');
-        % % % % %                         FIG=guidata(FIG.num);
-        % % % % %                     end
-        % % % % %
-        % % % % %                 else % Start of a new unit, because all pics for old unit are done
-        % % % % %                     FIG.numPICsdone=1; % No need to include TC (assumed that TC is the first file)
-        % % % % %                     FIG.UnitNum=FIG.UnitNum+1;
-        % % % % %                     FIG.CheckStop=0;
-        % % % % %
-        % % % % %                     guidata(FIG.num, FIG);
-        % % % % %                     screenDataMAT('NextPic_PBcallback');
-        % % % % %                     FIG=guidata(FIG.num);
-        % % % % %                 end
-        % % % % %             end
-        % % % % %
-        % % % % %         else
-        % % % % %             fprintf('all units are screened for this unit\n');
-        % % % % %             close(FIG.num);
-        % % % % %             %             allDone=1;
-        % % % % %         end
         
     elseif strcmp(subfunName, 'Badlines_Editcallback')
         picStr=get(FIG.handles.BadLineEdit, 'string');
@@ -477,7 +347,7 @@ elseif ischar(varIN)
         FIG.tcPicNum=getPicNum(tcfName);
         
         if FIG.progress.picsDone <= FIG.progress.picsTotal
-            if contains(getFileName(FIG.PICnum), 'tc')
+            if contains(getFileName_inDir(FIG), 'tc')
                 guidata(FIG.num, FIG);
                 screenDataMAT('NextPic_PBcallback');
                 if ishandle(ControlParams.FigureNum)
@@ -495,35 +365,27 @@ elseif ischar(varIN)
             error('not possible');
         end
         
-        
-        % % % % %         filename=getFileName(FIG.PICnum);
-        % % % % %         while contains(filename, 'tc')
-        % % % % %             FIG.PICnum=FIG.PICnum+1;
-        % % % % %             FIG.tcPicNum=FIG.PICnum;
-        % % % % %             filename=getFileName(FIG.PICnum);
-        % % % % %         end
-        % % % % %         TrackUnitNum=getTrackUnit(filename);
-        % % % % %         FIG.TrackNum=TrackUnitNum(1);
-        % % % % %         FIG.UnitNum=TrackUnitNum(2);
-        % % % % %         FIG.picList=findPics('*',[FIG.TrackNum,FIG.UnitNum]);
-        % % % % %         FIG.numPICsdone=find(FIG.picList==FIG.PICnum);
-        % % % % %
-        % % % % %         % All set to call RefreshPic_PBcallback
-        % % % % %         guidata(FIG.num, FIG);
-        % % % % %         screenDataMAT('RefreshPic_PBcallback');
-        % % % % %         FIG=guidata(FIG.num);
-        
     elseif strcmp(subfunName, 'discard')
         %         fprintf('working in discard\n%s', pwd);
         
         movefile(getFileName(FIG.PICnum), [FIG.NotUsedDIR getFileName(FIG.PICnum)]);
         fprintf('file moved to %s \n', FIG.NotUsedDIR);
+        % Refresh the plot ----------------
+        guidata(FIG.num, FIG);
+        screenDataMAT('RefreshPic_PBcallback');
+        FIG=guidata(FIG.num);
+        % ---------------------------------
         
     elseif strcmp(subfunName, 'undo_discard')
         %         fprintf('working in undo_discard\n');
-        if exist([FIG.NotUsedDIR getFileName(FIG.PICnum)], 'file')
+        if exist([FIG.NotUsedDIR getFileName_inDir(FIG)], 'file')
             movefile([FIG.NotUsedDIR FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum}], FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum});
         end
+        % Refresh the plot ----------------
+        guidata(FIG.num, FIG);
+        screenDataMAT('RefreshPic_PBcallback');
+        FIG=guidata(FIG.num);
+        % ---------------------------------
         
     elseif strcmp(subfunName, 'closeGUI')
         cd(FIG.CodesDir);
@@ -544,15 +406,13 @@ else
     figure(FIG.num);
 end
 
-
-curPicInd=FIG.picNUMs2GoThrough(FIG.progress.picsDone);
-FIG.ScreeningSummary(curPicInd).filename=getFileName(curPicInd);
+FIG.ScreeningSummary(FIG.PICnum).filename=getFileName_inDir(FIG);
 
 if isfield(FIG, 'percent_less_than_refractory')
-    FIG.ScreeningSummary(curPicInd).percentRefractoryViolation=FIG.percent_less_than_refractory;
+    FIG.ScreeningSummary(FIG.PICnum).percentRefractoryViolation=FIG.percent_less_than_refractory;
 end
-FIG.ScreeningSummary(curPicInd).trigger=FIG.trigger;
-FIG.ScreeningSummary(curPicInd).comments=FIG.comment_in_pic;
+FIG.ScreeningSummary(FIG.PICnum).trigger=FIG.trigger;
+FIG.ScreeningSummary(FIG.PICnum).comments=FIG.comment_in_pic;
 if ishandle(FIG.num)
     guidata(FIG.num, FIG);
 end

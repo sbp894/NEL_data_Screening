@@ -36,6 +36,7 @@ FIG=do_raster(FIG, PIC, excludeLines);     % *Keep here
 FIG=do_rate(FIG, PIC, excludeLines);       % *Plot here, calc from Mfile
 FIG=do_tuning_curve(FIG);
 
+linkaxes([FIG.handles.rate FIG.handles.raster], 'y')
 
 return;
 
@@ -53,7 +54,7 @@ FIG.handles.main = figure(FIG.num);
 clf;
 % set(gcf,figure_prop_name,figure_prop_val);
 
-NameText=sprintf('picture: %04d; filename: %s', PIC.num,getFileName(PIC.num));
+NameText=sprintf('picture: %04d; filename: %s', PIC.num,getFileName_inDir(FIG));
 set(gcf, 'Name', NameText);
 
 % Yshift=0.05;
@@ -81,7 +82,7 @@ figStages.yStage7= figStages.yStage6 + figStages.yHeight3;
 
 %% Y stage 1
 
-FIG.handles.discard=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ...
+FIG.handles.UndoDiscard=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ...
     'String',sprintf('UndoDiscard'),'Units','normalized','Position',[.63 figStages.yStage1 0.05 figStages.yHeight2],...
     'Visible','on', 'Backgroundcolor', [.3 .8 .3], 'callback', 'screenDataMAT(''undo_discard'')');
 
@@ -206,8 +207,12 @@ ylim([0 FIG.raster.ymax]);
 set(gca, 'FontSize', FIG.fontSize);
 FIG.raster.hx=xlabel('time (sec)');
 % set(FIG.raster.hx,'units','norm','pos',[0.4926   -0.01         0])
-set(gca,'YTick',0:10:FIG.raster.ymax)
+% set(gca,'YTick',0:10:FIG.raster.ymax)
 set(gca, 'TickDir', 'out');
+
+axes(FIG.handles.raster);
+zoom(1);
+
 return;
 
 %% ################################################################################################
@@ -231,10 +236,12 @@ hold off
 ylim([0 FIG.raster.ymax]);
 set(gca, 'FontSize', FIG.fontSize);
 set(gca,'XDir','reverse')
-set(gca,'YTick',0:10:FIG.raster.ymax)
+% set(gca,'YTick',0:10:FIG.raster.ymax)
 ylabel('Rep Number');
 FIG.rate.hx=xlabel('Rate (sp/s)');
 % set(FIG.rate.hx,'units','norm','pos',[-0.2   -0.018         0])
+axes(FIG.handles.rate);
+zoom(1);
 
 return;
 
@@ -247,6 +254,8 @@ subplot(FIG.handles.TC);
 FIG.TCdata.Thresh_dBSPL=Thresh_dBSPL_ret;
 FIG.TCdata.BF_kHz=BF_kHz_ret;
 FIG.TCdata.Q10=Q10_ret;
+
+axes(FIG.handles.TC); % this and the next line required to enable zoom
+zoom(1); % zoom by a factor of 1, dummy value 1 to enable zoom
 xlim([.1 16]);
-zoom ON
 grid on;
