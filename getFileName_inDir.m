@@ -1,6 +1,8 @@
-function filename=getFileName_inDir(FIG)
+function [fileName, dirName]=getFileName_inDir(FIG)
 
-filename= getFileName(FIG.PICnum, FIG.DataDir, FIG.verbose);
-if isempty(filename)
-    filename= getFileName(FIG.PICnum, FIG.NotUsedDIR, FIG.verbose);
+fileName= getFileName(FIG.PICnum, FIG.DataDir, FIG.verbose);
+dirName= FIG.DataDir;
+if isempty(fileName)
+    fileName= getFileName(FIG.PICnum, FIG.NotUsedDIR, FIG.verbose);
+    dirName= FIG.NotUsedDIR;
 end

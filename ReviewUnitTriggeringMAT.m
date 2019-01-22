@@ -14,12 +14,12 @@ fileCur=dir(sprintf('p%04d*',FIG.PICnum));
 
 if ~isempty(fileCur)
     FIG.discardedTag= false;
-    x=load(fileCur.name);
+    data=load(fileCur.name);
 
 elseif ~isempty(dir(sprintf('%sp%04d*',FIG.NotUsedDIR , FIG.PICnum)))
     FIG.discardedTag= true;
     fileCur=dir(sprintf('%sp%04d*',FIG.NotUsedDIR , FIG.PICnum));
-    x=load([FIG.NotUsedDIR  fileCur.name]);
+    data=load([FIG.NotUsedDIR  fileCur.name]);
 
 else
     set(FIG.handles.UndoDiscard, 'Enable', 'off');
@@ -27,47 +27,70 @@ else
     error('not found (and need to update logic here)'); 
 end
 
-x=x.data;
-if isfield(x.Stimuli, 'bad_lines')
-    FIG.badlines(FIG.PICnum).vals=x.Stimuli.bad_lines;
+data=data.data;
+
+if isfield(data.Stimuli, 'bad_lines')
+    FIG.badlines(FIG.PICnum).vals=data.Stimuli.bad_lines;
 end
+if ~isfield(data, 'screening')
+    data.screening.refract_check_tag= false;
+    data.screening.refract_violate_percent= nan;
+    if ~FIG.discardedTag % not discarded 
+        save(fileCur.name, 'data'); 
+    else 
+        save([FIG.NotUsedDIR fileCur.name], 'data'); 
+    end
+end
+
+%% uncomment this.
+% Should add badlines when data collection was stopped in the middle of
+% stim ON duration and some spikes were recorded for that line number. 
+% org_bad_inds= unique(x.spikes{1}(((x.spikes{1}(:,1))>x.Stimuli.fully_presented_stimuli), 1));
+% if ~isempty(org_bad_inds)
+%     FIG.badlines(FIG.PICnum).vals= [FIG.badlines(FIG.PICnum).vals, org_bad_inds];
+% end
+
+%%
 nComLines=1;
 FIG.ComStr=sprintf('Picture #: %d, filename: %s',FIG.PICnum,fileCur.name);
 
-if isfield(x.General,'trigger')
-    FIG.trigger=upper(x.General.trigger);
+if isfield(data.General,'trigger')
+    FIG.trigger=upper(data.General.trigger);
     nComLines=nComLines+1;
-    FIG.ComStr=strcat(FIG.ComStr,  sprintf('\nTrigger: %s',upper(x.General.trigger)));
-    if sum(strcmp(deblank(x.General.trigger),{'Poor','Fair'}))
+    FIG.ComStr=strcat(FIG.ComStr,  sprintf('\nTrigger: %s',upper(data.General.trigger)));
+    if sum(strcmp(deblank(data.General.trigger),{'Poor','Fair'}))
         beep
     end
 else
     FIG.trigger='---';
 end
 
-if isfield(x.General,'comment')
+if isfield(data.General,'comment')
     nComLines=nComLines+1;
-    FIG.ComStr=strcat(FIG.ComStr, sprintf('\nComment: %s\n',upper(x.General.comment)));
-    FIG.comment_in_pic=x.General.comment;
+    FIG.ComStr=strcat(FIG.ComStr, sprintf('\nComment: %s\n',upper(data.General.comment)));
+    FIG.comment_in_pic=data.General.comment;
 else
     FIG.comment_in_pic='';
 end
 
-if isfield(x.General,'run_errors')
-    for i=1:length(x.General.run_errors)
-        if ~sum(strcmp(x.General.run_errors{i}, ...
+if isfield(data.General,'run_errors')
+    for i=1:length(data.General.run_errors)
+        if ~sum(strcmp(data.General.run_errors{i}, ...
                 {'In function ''DALinloop_NI_wavfiles'': Input waveform ', ...
                 'has been truncated to fit requested duration. ', ...
                 'has been repeated to fill requested duration. '}))
             nComLines=nComLines+1;
-            FIG.ComStr=strcat(FIG.ComStr, sprintf('\nRun_errors: %s\n',x.General.run_errors{i}));
+            FIG.ComStr=strcat(FIG.ComStr, sprintf('\nRun_errors: %s\n',data.General.run_errors{i}));
         end
     end
 end
 
 if checkRASTER
     if ~strcmp('tc',getTAG(getFileName_inDir(FIG)))
-        FIG=PICviewMAT(FIG, FIG.PICnum,'', FIG.num);
+        % Should exclude if risky-do-nan has been pushed. Otherwise (i.e.
+        % if just labelled), htne should not exclude plotting. 
+
+        FIG=PICviewMAT(FIG, FIG.PICnum, FIG.num);
         if FIG.discardedTag % means discarded
             set(FIG.handles.UndoDiscard, 'Enable', 'on');
             set(FIG.handles.discard, 'Enable', 'off');
@@ -86,10 +109,10 @@ if checkRASTER
         FIG=guidata(FIG.num);
     end
 end
-if isfield(x.Line, 'file')
-    filesPlayed=cell2mat(cellfun(@(x) ischar(x), x.Line.file', 'uniformoutput', false));
-    cleanSpeechInds= find(cell2mat(cellfun(@(x) contains(x, '_S_P'), x.Line.file(filesPlayed)', 'uniformoutput', false)), 1);
-    audio_fName= x.Line.file{cleanSpeechInds};
+if isfield(data.Line, 'file')
+    filesPlayed=cell2mat(cellfun(@(x) ischar(x), data.Line.file', 'uniformoutput', false));
+    cleanSpeechInds= find(cell2mat(cellfun(@(x) contains(x, '_S_P'), data.Line.file(filesPlayed)', 'uniformoutput', false)), 1);
+    audio_fName= data.Line.file{cleanSpeechInds};
     audio_fName=strrep(audio_fName, 'C:\NEL\', '');
     audio_fName=strrep(audio_fName, '\', filesep);
     audio_fName=strrep(audio_fName, ' ', ''); %remove blankspace at the end
@@ -98,7 +121,7 @@ if isfield(x.Line, 'file')
         plotYes=0;
         verbose=0;
         [filteredSPL, ~]=CalibFilter_outSPL(audio_fName, calib_fName, plotYes, verbose);
-        FIG.dB_SPL= filteredSPL-x.Line.attens.list(find(cleanSpeechInds, 1 ), 2);
+        FIG.dB_SPL= filteredSPL-data.Line.attens.list(find(cleanSpeechInds, 1 ), 2);
         FIG.ComStr=strcat(FIG.ComStr, sprintf('\nIntensity= %.1f dB SPL', FIG.dB_SPL));
     end
 end

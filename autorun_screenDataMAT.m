@@ -1,10 +1,27 @@
 function autorun_screenDataMAT(chinID)
 
+orgBadlinesDir= '/media/parida/DATAPART1/Matlab/GeneralOutput/BADlines_org/';
+badlines_file= dir([orgBadlinesDir '*' num2str(chinID) '*']);
+badLinesStruct= load([orgBadlinesDir badlines_file.name]);
+badLinesStruct= badLinesStruct.badLinesStruct;
 
-screenDataMAT(chinID);
+pics_done= auto_screenDataMAT(chinID);
+if ~isempty(badLinesStruct(pics_done).badlines) | ~isnan(badLinesStruct(pics_done).badlines) %#ok<OR2>
+    FIG= guidata(1001);
+    set(FIG.handles.BadLineEdit, 'string', MakeInputPicString(badLinesStruct(pics_done).badlines));
+    screenDataMAT('Badlines_Editcallback');
+    screenDataMAT('badLinesRemoveAction');
+end
 
-stop_flag=0;
-
-while ~stop_flag
-   stop_flag=auto_screenDataMAT('NextPic_PBcallback');
+while pics_done
+    screenDataMAT('censor_refractory');
+    pics_done=auto_screenDataMAT('NextPic_PBcallback');
+    if pics_done>0
+        if ~isempty(badLinesStruct(pics_done).badlines) & ~isnan(badLinesStruct(pics_done).badlines)  %#ok<AND2>
+            FIG= guidata(1001);
+            set(FIG.handles.BadLineEdit, 'string', MakeInputPicString(badLinesStruct(pics_done).badlines));
+            screenDataMAT('Badlines_Editcallback');
+            screenDataMAT('badLinesRemoveAction');
+        end
+    end
 end

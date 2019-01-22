@@ -22,7 +22,11 @@ end
 
 spont_window_sec=[PIC.x.Hardware.Trigger.StmOn+OFFSET PIC.x.Hardware.Trigger.StmOn+PIC.x.Hardware.Trigger.StmOff]/1000;
 
-for line = 1:PIC.x.Stimuli.fully_presented_lines
+yMax= max(PIC.x.spikes{1}(:,1));
+driv= nan(yMax, 1);
+spont= nan(yMax, 1);
+
+for line = 1:yMax
    spikeIndices = find((spikeTimes(:,1) == line ));
    driv(line) = length( find( (spikeTimes(spikeIndices,2) >= driven_window_sec(1)) & ...
       (spikeTimes(spikeIndices,2) < driven_window_sec(2)) ) );

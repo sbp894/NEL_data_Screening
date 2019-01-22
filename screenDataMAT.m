@@ -75,15 +75,15 @@ if isnumeric(varIN)
     elseif length(checkDIR)~=1
         if length(checkDIR)>1
             checkDIR= checkDIR(contains({checkDIR.name}', '_AN_'));
-            FIG.DataDir=[MATDataDir checkDIR.name];
+            FIG.DataDir=[MATDataDir checkDIR.name filesep];
         else
             error('What''s going on?');
         end
         
     else
-        FIG.DataDir=[MATDataDir checkDIR.name];
+        FIG.DataDir=[MATDataDir checkDIR.name filesep];
     end
-    FIG.NotUsedDIR=strcat(FIG.DataDir, filesep, 'NotUsedDIR', filesep);
+    FIG.NotUsedDIR=strcat(FIG.DataDir, 'NotUsedDIR', filesep);
     if ~isdir(FIG.NotUsedDIR)
         mkdir(FIG.NotUsedDIR);
     end
@@ -104,12 +104,12 @@ if isnumeric(varIN)
     FIG.picFILES2GoThrough={allFiles(sortPicInds).name}';
     FIG.picNUMs2GoThrough=sortedPicNums;
     
-    FIG.OutputDir=strcat(FIG.DataDir, filesep, 'ScreeningOutput', filesep);
+    FIG.OutputDir=strcat(FIG.DataDir, 'ScreeningOutput', filesep);
     if ~isdir(FIG.OutputDir)
         mkdir(FIG.OutputDir);
     end
     
-    all_AN_picFiles=dir([FIG.DataDir filesep 'p*.mat']);
+    all_AN_picFiles=dir([FIG.DataDir 'p*.mat']);
     maxPicNUM=getPicNum(all_AN_picFiles(end).name);
     %     if ~exist([FIG.OutputDir 'ScreeningSummary.mat'], 'file')
     FIG.ScreeningSummary=repmat(struct('filename', '---' ,'percentRefractoryViolation', nan, 'trigger', '---', 'comments', '---'), maxPicNUM, 1);
@@ -169,8 +169,8 @@ elseif ischar(varIN)
             screenDataMAT('RefreshPic_PBcallback');
             FIG=guidata(FIG.num);
         end
-                
-    elseif strcmp(subfunName, 'RefreshPic_PBcallback') % (Probably) a useless callback
+        
+    elseif strcmp(subfunName, 'RefreshPic_PBcallback')
         
         FIG=ReviewUnitTriggeringMAT(FIG);
         if ~isempty(FIG.badlines(FIG.PICnum).vals)
@@ -178,7 +178,13 @@ elseif ischar(varIN)
             guidata(FIG.num, FIG);
             screenDataMAT('Badlines_Editcallback');
             FIG=guidata(FIG.num);
+        else
+            set(FIG.handles.BadLineEdit, 'string', '');
+            guidata(FIG.num, FIG);
+            screenDataMAT('Badlines_Editcallback');
+            FIG=guidata(FIG.num);
         end
+        
         
     elseif strcmp(subfunName, 'NextPic_PBcallback')
         
@@ -214,7 +220,12 @@ elseif ischar(varIN)
         end
         
     elseif strcmp(subfunName, 'Badlines_Editcallback')
-        picStr=get(FIG.handles.BadLineEdit, 'string');
+        % This function is for shading badlines. In order to save these
+        % lines, you have to use the 'Label' button <tips>
+        
+        picStr=get(FIG.handles.BadLineEdit, 'string'); % reads new line numbers
+        
+        % removes shading for old badlines
         if sum(isstrprop(picStr,'digit'))
             tempVals=ParseInputString2Num(picStr);
             FIG.badlines(FIG.PICnum).vals=tempVals;
@@ -236,16 +247,18 @@ elseif ischar(varIN)
                 FIG.badlines(FIG.PICnum).han2=[];
             end
             
+            % fills new badlines
             FIG.badlines(FIG.PICnum).han1=fill_badlines(FIG.handles.rate, tempVals, ControlParams.rateColor);
             FIG.badlines(FIG.PICnum).han2=fill_badlines(FIG.handles.raster, tempVals, ControlParams.rasterColor);
             
         else
-            FIG.badlines(FIG.PICnum).vals=nan;
+            FIG.badlines(FIG.PICnum).vals=[];
         end
         
         
     elseif strcmp(subfunName, 'badLinesRemoveLabel')
-        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
+        % Once edit_badlines has been called, this subroutine can be used.
+        FIG.badlines= label_1pic_badline(FIG);
         
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
@@ -255,6 +268,7 @@ elseif ischar(varIN)
         
         
     elseif strcmp(subfunName, 'badLinesRemoveReset')
+        % first clear all shadings.
         if isfield(FIG.badlines(FIG.PICnum),'han1')
             for lNum=1:length(FIG.badlines(FIG.PICnum).han1)
                 if isgraphics(FIG.badlines(FIG.PICnum).han1(lNum).lineHan)
@@ -271,13 +285,18 @@ elseif ischar(varIN)
             end
             FIG.badlines(FIG.PICnum).han2=[];
         end
-        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
+        
+        % then update badlines with an empty array.
+        FIG.badlines(FIG.PICnum).vals=[];
+        
+        % and save it
+        FIG.badlines= label_1pic_badline(FIG);
         set(FIG.handles.BadLineEdit, 'string', '');
         
         
     elseif strcmp(subfunName, 'badLinesRemoveAction')
-        FIG.badlines=label_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
-        FIG.badlines=remove_1pic_badline(FIG.ChinID, FIG.PICnum, FIG.badlines, MATDataDir);
+        FIG.badlines= label_1pic_badline(FIG);
+        FIG.badlines= remove_1pic_badline(FIG);
         
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
@@ -300,12 +319,19 @@ elseif ischar(varIN)
         isi(new_line_index)=inf;
         abs_refractory_violation_index= (isi<=abs_refractory);
         
-        if ~isfield(data, 'percent_less_than_refractory')
-            data.percent_less_than_refractory=100*sum(abs_refractory_violation_index)/size(data.spikes{1}, 1);
+        if ~data.screening.refract_check_tag % this is initialized to false in ReviewUnitTriggeringMAT
+            
+            % Need to do this once
+            data.screening.refract_check_tag= true;
+            data.screening.refract_violate_percent=100*sum(abs_refractory_violation_index)/size(data.spikes{1}, 1);
+            data.spikes{1}(abs_refractory_violation_index,:)=nan;
+            save(curFile.name, 'data');
+            
+        else
+            fprintf('Violations already removed! \n');
+            return;
         end
         
-        data.spikes{1}(abs_refractory_violation_index,:)=nan;
-        save(curFile.name, 'data');
         if exist([FIG.NotUsedDIR FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum}], 'file')
             fprintf('this file is discarded\n');
         end
@@ -317,7 +343,6 @@ elseif ischar(varIN)
         screenDataMAT('RefreshPic_PBcallback');
         FIG=guidata(FIG.num);
         % ---------------------------------
-        %         fprintf('Ready\n');
         
         
     elseif strcmp(subfunName, 'GoToPicEdit')
@@ -370,6 +395,7 @@ elseif ischar(varIN)
         
         movefile(getFileName(FIG.PICnum), [FIG.NotUsedDIR getFileName(FIG.PICnum)]);
         fprintf('file moved to %s \n', FIG.NotUsedDIR);
+        
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
         screenDataMAT('RefreshPic_PBcallback');
@@ -381,6 +407,7 @@ elseif ischar(varIN)
         if exist([FIG.NotUsedDIR getFileName_inDir(FIG)], 'file')
             movefile([FIG.NotUsedDIR FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum}], FIG.picFILES2GoThrough{FIG.picNUMs2GoThrough == FIG.PICnum});
         end
+        
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
         screenDataMAT('RefreshPic_PBcallback');
@@ -401,18 +428,22 @@ if ~ishandle(FIG.num)
         %         save('reviewOUTPUT.mat', 'badLines');
     end
 else
-    datacursormode(FIG.num);
+    %     datacursormode(FIG.num);
     guidata(FIG.num, FIG);
     figure(FIG.num);
+    zoom on;
 end
 
 FIG.ScreeningSummary(FIG.PICnum).filename=getFileName_inDir(FIG);
 
-if isfield(FIG, 'percent_less_than_refractory')
-    FIG.ScreeningSummary(FIG.PICnum).percentRefractoryViolation=FIG.percent_less_than_refractory;
-end
+% if isfield(FIG, 'percent_less_than_refractory')
+%     FIG.ScreeningSummary(FIG.PICnum).percentRefractoryViolation=FIG.percent_less_than_refractory;
+% end
+FIG.ScreeningSummary(FIG.PICnum).discardedTag=FIG.discardedTag;
+FIG.ScreeningSummary(FIG.PICnum).badlines =FIG.badlines(FIG.PICnum).vals;
 FIG.ScreeningSummary(FIG.PICnum).trigger=FIG.trigger;
 FIG.ScreeningSummary(FIG.PICnum).comments=FIG.comment_in_pic;
+
 if ishandle(FIG.num)
     guidata(FIG.num, FIG);
 end

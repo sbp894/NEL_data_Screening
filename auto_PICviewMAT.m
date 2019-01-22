@@ -1,4 +1,4 @@
-function FIG=PICviewMAT(FIG, picNum, figNum)
+function FIG=auto_PICviewMAT(FIG, picNum, figNum)
 % Edited SP
 % --------------------------------------------------------
 % Original file details
@@ -33,11 +33,8 @@ PIC.x=temp.data;
 PIC.num=picNum;
 
 if isfield(PIC.x, 'bad_data')
-    if isequal(FIG.badlines(FIG.PICnum).vals, PIC.x.bad_data.BadLines)
-        excludeLines= [];
-    else
-        excludeLines= PIC.x.bad_data.BadLines;
-    end
+    isequal(FIG.badlines(FIG.PICnum).vals, PIC.x.bad_data.BadLines)
+    excludeLines= PIC.x.bad_data.BadLines;
 else
     excludeLines= [];
 end
@@ -96,37 +93,37 @@ figStages.yStage7= figStages.yStage6 + figStages.yHeight3;
 
 FIG.handles.UndoDiscard=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ...
     'String',sprintf('UndoDiscard'),'Units','normalized','Position',[.63 figStages.yStage1 0.05 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.3 .8 .3], 'callback', 'screenDataMAT(''undo_discard'')');
+    'Visible','on', 'Backgroundcolor', [.3 .8 .3], 'callback', 'auto_screenDataMAT(''undo_discard'')');
 
 FIG.handles.PrevPicPB=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ...
     'String','prev picture (<<)','Units','normalized','Position',[0.7 figStages.yStage1 0.067 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''PrevPic_PBcallback'')');
+    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'auto_screenDataMAT(''PrevPic_PBcallback'')');
 
 FIG.handles.RefreshPicPB=uicontrol('Parent',FIG.num,'Style','pushbutton',...
     'String','(Refresh)','Units','normalized','Position',[0.767 figStages.yStage1 0.067 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''RefreshPic_PBcallback'')');
+    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'auto_screenDataMAT(''RefreshPic_PBcallback'')');
 
 FIG.handles.NextPicPB=uicontrol('Parent',FIG.num,'Style','pushbutton',...
     'String','next picture (>>)','Units','normalized','Position',[0.834 figStages.yStage1 0.067 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''NextPic_PBcallback'')');
+    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'auto_screenDataMAT(''NextPic_PBcallback'')');
 
 FIG.handles.closeGUI=uicontrol('Parent',FIG.num,'Style','pushbutton',...
     'String','Close','Units','normalized','Position',[.92 figStages.yStage1 0.04 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [1 .2 .2], 'callback', 'screenDataMAT(''closeGUI'')');
+    'Visible','on', 'Backgroundcolor', [1 .2 .2], 'callback', 'auto_screenDataMAT(''closeGUI'')');
 
 %% Y stage 2
 
 FIG.handles.discard=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ...
     'String',sprintf('Discard'),'Units','normalized','Position',[.63 figStages.yStage2 0.05 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [1 .2 .2], 'callback', 'screenDataMAT(''discard'')', 'fontweight', 'bold');
+    'Visible','on', 'Backgroundcolor', [1 .2 .2], 'callback', 'auto_screenDataMAT(''discard'')', 'fontweight', 'bold');
 
 FIG.handles.badLinesRemoveAction=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ......
     'String',sprintf('Risky-DO-NAN'),'Units','normalized','Position',[0.7 figStages.yStage2 0.1 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.3 0.647 0.841], 'callback', 'screenDataMAT(''badLinesRemoveAction'')');
+    'Visible','on', 'Backgroundcolor', [.3 0.647 0.841], 'callback', 'auto_screenDataMAT(''badLinesRemoveAction'')');
 
 FIG.handles.censor_refractory=uicontrol('Parent',FIG.num,'Style','pushbutton','enable', 'on', ...
     'String',sprintf('remove < refractory'),'Units','normalized','Position',[0.8 figStages.yStage2 0.1 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.3 0.647 0.841], 'callback', 'screenDataMAT(''censor_refractory'')');
+    'Visible','on', 'Backgroundcolor', [.3 0.647 0.841], 'callback', 'auto_screenDataMAT(''censor_refractory'')');
 
 %% Y stage 3
 
@@ -136,20 +133,20 @@ FIG.handles.GoToPicTxt=uicontrol('Parent',FIG.num,'Style','text',...
 
 FIG.handles.GoToPicEdit=uicontrol('Parent',FIG.num,'Style','edit',...
     'String','','Units','normalized','Position',[0.63 figStages.yStage3 0.05 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.6 .6 .8], 'callback', 'screenDataMAT(''GoToPicEdit'')');
+    'Visible','on', 'Backgroundcolor', [.6 .6 .8], 'callback', 'auto_screenDataMAT(''GoToPicEdit'')');
 
 FIG.handles.badLinesRemoveReset=uicontrol('Parent',FIG.num,'Style','pushbutton',...
     'String','Reset','Units','normalized','Position',[0.7 figStages.yStage3 0.1 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''badLinesRemoveReset'')');
+    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'auto_screenDataMAT(''badLinesRemoveReset'')');
 
 FIG.handles.badLinesRemoveLabel=uicontrol('Parent',FIG.num,'Style','pushbutton',...
     'String','Label','Units','normalized','Position',[0.8 figStages.yStage3 0.1 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'screenDataMAT(''badLinesRemoveLabel'')');
+    'Visible','on', 'Backgroundcolor', [.7 .7 .7], 'callback', 'auto_screenDataMAT(''badLinesRemoveLabel'')');
 
 %% Y stage 4
 FIG.handles.BadLineEdit=uicontrol('Parent',FIG.num,'Style','edit',...
     'String','','Units','normalized','Position',[0.7 figStages.yStage4 0.2 figStages.yHeight2],...
-    'Visible','on', 'Backgroundcolor', [.6 .8 .6], 'callback', 'screenDataMAT(''Badlines_Editcallback'')');
+    'Visible','on', 'Backgroundcolor', [.6 .8 .6], 'callback', 'auto_screenDataMAT(''Badlines_Editcallback'')');
 
 %% Y stage 5
 FIG.handles.BadLineText=uicontrol('Parent',FIG.num,'Style','text',...
@@ -204,16 +201,15 @@ plot(PIC.x.spikes{1}(SpikeINDs,2),PIC.x.spikes{1}(SpikeINDs,1), 'k.', 'MarkerSiz
 hold on;
 plot(PIC.x.spikes{1}(abs_refractory_violation_index2plot,2),PIC.x.spikes{1}(abs_refractory_violation_index2plot,1), 'rd', 'MarkerSize', 3);
 percent_less_than_refractory=100*sum(abs_refractory_violation_index2plot)/sum(SpikeINDs);
-if ~PIC.x.screening.refract_check_tag
+FIG.percent_less_than_refractory=percent_less_than_refractory;
+if ~isfield(PIC.x,'percent_less_than_refractory')
     title(sprintf('Not Censored. %d spikes before refractory (%.2f%%)', sum(abs_refractory_violation_index2plot), percent_less_than_refractory));
-    FIG.ScreeningSummary(FIG.PICnum).percentRefractoryViolation=percent_less_than_refractory;
 else
-    title(sprintf('Censored. %d spikes before refractory now. Before censoring it was %.2f%%)', sum(abs_refractory_violation_index2plot), PIC.x.screening.refract_violate_percent));
-    FIG.ScreeningSummary(FIG.PICnum).percentRefractoryViolation=PIC.x.screening.refract_violate_percent;
+    title(sprintf('Censored. %d spikes before refractory now. Before censoring it was %.2f%%)', sum(abs_refractory_violation_index2plot), PIC.x.percent_less_than_refractory));
 end
 
 FIG.raster.xmax = (PIC.x.Hardware.Trigger.StmOn + PIC.x.Hardware.Trigger.StmOff) / 1000;
-FIG.raster.ymax = max([max(PIC.x.spikes{1}(:,1)) PIC.x.Stimuli.fully_presented_stimuli])+.5;
+FIG.raster.ymax = max(PIC.x.spikes{1}(:,1))+.5;
 % FIG.raster.ymax = ceil(max(PIC.x.spikes{1}(SpikeINDs,1))/10)*10;
 xlim([0 FIG.raster.xmax]);
 ylim([0 FIG.raster.ymax]);
