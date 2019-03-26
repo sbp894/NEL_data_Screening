@@ -32,6 +32,7 @@ data=data.data;
 if isfield(data.Stimuli, 'bad_lines')
     FIG.badlines(FIG.PICnum).vals=data.Stimuli.bad_lines;
 end
+
 if ~isfield(data, 'screening')
     data.screening.refract_check_tag= false;
     data.screening.refract_violate_percent= nan;

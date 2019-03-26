@@ -17,7 +17,7 @@ CodesDir='/media/parida/DATAPART1/Matlab/Screening/';
 addpath(CodesDir);
 MATDataDir='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
 
-checkDIR=dir(sprintf('%s*Q%d*',MATDataDir,ChinNum));
+checkDIR=dir(sprintf('%s*Q%d*AN*',MATDataDir,ChinNum));
 if isempty(checkDIR)
     error('No such directory for animal number %d',ChinNum);
 elseif length(checkDIR)~=1
@@ -156,7 +156,7 @@ switch lower(resp2)
                 for file_var=1:length(allUnitfiles)
                     x=load(allUnitfiles(file_var).name);
                     data=x.data;
-                    data.BFmod=BF_kHz(file_var,4);
+                    data.BFcalib=BF_kHz(file_var,4);
                     save(allUnitfiles(file_var).name,'data');
                 end
             case {'no', 'n'}
@@ -188,3 +188,4 @@ end
 
 
 cd(CodesDir);
+update_bf_per_chin(ChinNum);

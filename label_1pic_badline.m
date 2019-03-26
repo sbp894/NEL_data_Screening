@@ -11,12 +11,17 @@ badlines= FIG.badlines;
 curFile=dir(sprintf('p%04d*',PICnum));
 data=load(curFile.name);
 data=data.data;
-maxLine= max([max(data.spikes{1}(:,1)), data.Stimuli.fully_presented_stimuli]);
-badlines(PICnum).vals(badlines(PICnum).vals > maxLine)=[];
-%         curBadLines=sort(badlines(PICnum).vals, 'descend');
-%%         Do not alter the data. Only save the badlines.
-data.Stimuli.bad_lines=badlines(PICnum).vals;
-fprintf('Updated (labelled bad lines) file named %s\n', curFile.name);
-save(curFile.name, 'data')
-% end
-%
+
+if isequal(data.Stimuli.bad_lines, badlines(PICnum).vals)
+    fprintf('-------- Nothing to label, same badlines \n');
+    return;
+else
+    data.screening.refract_check_tag= false;
+    maxLine= max([max(data.spikes{1}(:,1)), data.Stimuli.fully_presented_stimuli]);
+    badlines(PICnum).vals(badlines(PICnum).vals > maxLine)=[];
+    %         curBadLines=sort(badlines(PICnum).vals, 'descend');
+    %%         Do not alter the data. Only save the badlines.
+    data.Stimuli.bad_lines=badlines(PICnum).vals;
+    fprintf('Updated (labelled bad lines) file named %s\n', curFile.name);
+    save(curFile.name, 'data')
+end

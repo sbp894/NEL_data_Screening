@@ -1,16 +1,22 @@
-function estimate_TC_props(tc_data, freq)
+function [bf_freq, bf_thresh]= estimate_TC_props(tc_data, freq, plotYes)
+
+if ~exist('plotYes', 'var')
+    plotYes= true;
+end
+
+txtSize= 16;
 
 [~, inds]= sort(freq);
 freq= freq(inds);
 tc_data= tc_data(inds);
 
 tx.x=min(freq);
-tx.y=140;
+tx.y=max(tc_data);
 
 maxMisMatch= 20; % in dB
 nearMismatchThresh=10;
-Ident_Slope=3;
-Ident_Mismatch=3; % consider a point X as candidate if thresh_P within <Ident_Mismatch> of the lowest thresh (theta_l) 
+% Ident_Slope=3;
+Ident_Mismatch=3; % consider a point X as candidate if thresh_P within <Ident_Mismatch> of the lowest thresh (theta_l)
 % and (?? at least one point b/w the point with lowest thresh and X has
 % higher thresh than min(theta_l, thresh_P), should we add this??)
 MinPeakDistance= 10; % 10 points
@@ -21,6 +27,11 @@ slopeRatioThresh= 1.5;
 threshNForSlopeFitting=5;
 
 [~, locs]= min(tc_data);
+if length(tc_data)<MinPeakDistance+2
+    bf_freq= nan;
+    bf_thresh= nan;
+    return;
+end
 [~, temp_locs1]= findpeaks(-tc_data, 'MinPeakDistance', MinPeakDistance, 'MinPeakProminence', MinPeakProminence, 'MinPeakWidth', MinPeakWidth); % compute candidate bfs w/ certain criteria
 locs= [locs; setdiff(temp_locs1, locs)];
 
@@ -32,8 +43,8 @@ end
 locs= unique(locs);
 
 % shift candidates to slightly higher CFs if their thresh is
-% <Ident_Mismatch apart 
-[~, temp_locs2]= findpeaks(-tc_data); 
+% <Ident_Mismatch apart
+[~, temp_locs2]= findpeaks(-tc_data);
 temp_locs2= setdiff(temp_locs2, locs);
 
 for candVar= 1:length(locs)
@@ -95,32 +106,57 @@ if numel(locs)>1
             && min(tc_data(locs(1:end-1)))-tc_data(locs(end))>-nearMismatchThresh && nPointsForHFslope(end)>threshNForSlopeFitting
         % means freqs are apart and the last candidate slope is bigger,
         % pick the last one
-        plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
-        text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))));
-        text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))));
-        text(tx.x, tx.y,'reason: clear', 'fontsize', 8);
+        if plotYes
+            plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
+            text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))), 'fontsize', txtSize);
+            text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))), 'fontsize', txtSize);
+            text(tx.x, tx.y,'reason: clear', 'fontsize', txtSize);
+        end
+        exitFlag= 1;
     elseif freq(locs(end))/max(freq(locs(1:end-1)))>freqSeparationThresh && abs(tc_data(locs(end))-min(tc_data(locs(1:end-1))))<nearMismatchThresh ...
             && nPointsForHFslope(end)>threshNForSlopeFitting
         % means frequencies are decently apart, thresholds are similar, so
         % pick the second one
-        plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
-        text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))));
-        text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))));
-        text(tx.x, tx.y,'reason: simThresh and apartFreq', 'fontsize', 8);
+        if plotYes
+            plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
+            text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))), 'fontsize', txtSize);
+            text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))), 'fontsize', txtSize);
+            text(tx.x, tx.y,'reason: simThresh and apartFreq', 'fontsize', txtSize);
+        end
+        exitFlag= 1;
     elseif slopesVals(end)/max([0; slopesVals(1:end-1)])>slopeRatioThresh && freq(locs(end))/max(freq(locs(1:end-1)))>freqSeparationThresh ...
             && nPointsForHFslope(end)>threshNForSlopeFitting
         % means freqs are apart and the last candidate slope is bigger,
         % pick the last one
-        plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
-        text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))));
-        text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))));
-        text(tx.x, tx.y,'reason: betterSlope (not noisy), apartFreq', 'fontsize', 8);
+        if plotYes
+            plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
+            text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))), 'fontsize', txtSize);
+            text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))), 'fontsize', txtSize);
+            text(tx.x, tx.y,'reason: betterSlope (not noisy), apartFreq', 'fontsize', txtSize);
+        end
+        exitFlag= 1;
     else
-        text(tx.x, tx.y, 'Confusing!');
+        if plotYes
+            text(tx.x, tx.y, 'Confusing!', 'fontsize', txtSize);
+        end
+        exitFlag= 0;
     end
 elseif numel(locs)==1
-    plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
-    text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))));
-    text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))));
-    text(tx.x, tx.y,'reason: clear', 'fontsize', 8);
+    if plotYes
+        plot(freq(locs(end)), tc_data(locs(end)), '*r', 'linew', lw5, 'markersize', mrkSize4);
+        text(freq(locs(end))+.2, 1, sprintf('CF=%.1f kHz', freq(locs(end))), 'fontsize', txtSize);
+        text(min(freq), tc_data(locs(end))-1, sprintf('Thresh=%.1f dB', tc_data(locs(end))), 'fontsize', txtSize);
+        text(tx.x, tx.y,'reason: clear', 'fontsize', txtSize);
+    end
+    exitFlag= 1;
 end
+
+if exitFlag
+    bf_freq= freq(locs(end));
+    bf_thresh= tc_data(locs(end));
+else
+    bf_freq= nan;
+    bf_thresh= nan;
+end
+
+ylim([-10 1.05*max(tc_data)]);

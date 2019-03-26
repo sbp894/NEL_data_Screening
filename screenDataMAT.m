@@ -8,9 +8,13 @@
 % FIG=guidata(FIG.num);
 %
 % Comments:
-% Need to add TCs
-% Need to add discard button
-
+% ----------------------------- TO-DO
+% Most time, last line in rate-level function is not complete. So
+% auto-remove
+% 
+% ----------------------------- DONE
+% The Q10_level in Unit_*.mat and in plotTCs are different. Fix that.
+% Then addEditTC option in this GUI
 
 function screenDataMAT(varIN)
 
@@ -124,9 +128,9 @@ if isnumeric(varIN)
     FIG.progress.picsTotal=length(FIG.picNUMs2GoThrough);
     
     FIG.PICnum=FIG.picNUMs2GoThrough(FIG.progress.picsDone);
-    TrackUnitNum = getTrackUnit(FIG.picFILES2GoThrough(FIG.progress.picsDone));
-    FIG.TrackNum=TrackUnitNum(1);
-    FIG.UnitNum=TrackUnitNum(2);
+%     TrackUnitNum = getTrackUnit(getFileName_inDir(FIG));
+%     FIG.TrackNum=TrackUnitNum(1);
+%     FIG.UnitNum=TrackUnitNum(2);
     
     calibFile=dir('*calib*');
     FIG.all_calib_picNums=cellfun(@(x) getPicNum(x), {calibFile.name});
@@ -171,7 +175,11 @@ elseif ischar(varIN)
         end
         
     elseif strcmp(subfunName, 'RefreshPic_PBcallback')
-        
+
+        TrackUnitNum = getTrackUnit(getFileName_inDir(FIG));
+        FIG.TrackNum=TrackUnitNum(1);
+        FIG.UnitNum=TrackUnitNum(2);
+
         FIG=ReviewUnitTriggeringMAT(FIG);
         if ~isempty(FIG.badlines(FIG.PICnum).vals)
             set(FIG.handles.BadLineEdit, 'string', MakeInputPicString(FIG.badlines(FIG.PICnum).vals));
@@ -307,8 +315,9 @@ elseif ischar(varIN)
         
     elseif strcmp(subfunName, 'censor_refractory')
         
-        picSearchString = sprintf('p%04d*.mat', FIG.PICnum);
-        curFile = dir(picSearchString);
+%         picSearchString = sprintf('p%04d*.mat', FIG.PICnum);
+        [fileName, dirName]=getFileName_inDir(FIG);
+        curFile.name = [dirName fileName];
         
         temp=load(curFile.name);
         data=temp.data;
@@ -413,6 +422,16 @@ elseif ischar(varIN)
         screenDataMAT('RefreshPic_PBcallback');
         FIG=guidata(FIG.num);
         % ---------------------------------
+        
+    elseif strcmp(subfunName, 'TCedit')
+        update_tc_per_unit(FIG);
+        
+        % Refresh the plot ----------------
+        guidata(FIG.num, FIG);
+        screenDataMAT('RefreshPic_PBcallback');
+        FIG=guidata(FIG.num);
+        % ---------------------------------
+        
         
     elseif strcmp(subfunName, 'closeGUI')
         cd(FIG.CodesDir);

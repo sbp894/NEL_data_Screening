@@ -81,8 +81,18 @@ for ind=1:numTCs
     curTCdata(:,4)=trifilt(curTCdata(:,3)',TFiltWidthTC)';
     
     % Set unit BF/Threshold to picked BF/Threshold
-    BF_kHz=tempTCdata.Thresh.BF;
-    Thresh_dBSPL=curTCdata(curTCdata(:,1)==BF_kHz,3);
+    track_unit_vals= getTrackUnit(getFileName(PIClist));
+    trackUnit_fName= sprintf('Unit_%d_%02d.mat', track_unit_vals);
+    
+    if exist(trackUnit_fName, 'file')
+        unitData= load(trackUnit_fName);
+        unitData= unitData.data;
+        BF_kHz=unitData.BFmod;
+        Thresh_dBSPL=unitData.Thresh_dB;
+    else
+        BF_kHz=tempTCdata.Thresh.BF;
+        Thresh_dBSPL=curTCdata(curTCdata(:,1)==BF_kHz,3);
+    end
     
     % % %% Generate smoothed TC, but avoiding upward bias at BF (tip)
     % % % Fits each side separately, and then sets equal to actual data point at BF
@@ -93,7 +103,7 @@ for ind=1:numTCs
     
     % pass smoothed tcdata for q10 calculation (based on actual data point at BF, and smoothed TC otherwise
     % This avoids the bias in smoothing at the tip, i.e., raising threshold at BF
-    [Q10,Q10fhi,Q10flo,Q10lev] = findQ10(curTCdata(:,1),curTCdata(:,4),BF_kHz);
+    [Q10,Q10fhi,Q10flo,Q10lev] = findQ10(curTCdata(:,1),curTCdata(:,3),BF_kHz);
     
     
     if PLOTyes

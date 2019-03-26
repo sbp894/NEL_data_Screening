@@ -22,6 +22,13 @@ if ~exist('old_bad_data', 'var')
 end
 do_save =1;
 %% Different files have different structure format
+if ~isempty(old_bad_data) 
+    if isequal(new_BadLines, old_bad_data.BadLines)
+        fprintf('-------- Nothing to update, same badlines \n');
+        return;
+    end
+end
+
 
 if contains(curFile.name, '_SR')
     % reset all old_badlines
@@ -47,7 +54,7 @@ if contains(curFile.name, '_SR')
     
     %     data.Stimuli.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
     %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
-    data.bad_data.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
+    data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
     
 elseif contains(curFile.name, '_RLV')
     % reset all old_badlines
@@ -73,7 +80,7 @@ elseif contains(curFile.name, '_RLV')
     
     %     data.Stimuli.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
     %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
-    data.bad_data.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
+    data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
     
 elseif contains(curFile.name, '_SNRenv')
     % reset all old_badlines
@@ -103,7 +110,7 @@ elseif contains(curFile.name, '_SNRenv')
     
     %     data.Stimuli.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
     %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
-    data.bad_data.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
+    data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
     
     % two additional subfields for SNRenv
     data.bad_data.Line.file= data.Line.file(new_BadLines);

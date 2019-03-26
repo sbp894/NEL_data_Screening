@@ -17,7 +17,7 @@ while pics_done
     screenDataMAT('censor_refractory');
     pics_done=auto_screenDataMAT('NextPic_PBcallback');
     if pics_done>0
-        if ~isempty(badLinesStruct(pics_done).badlines) & ~isnan(badLinesStruct(pics_done).badlines)  %#ok<AND2>
+        if ~isempty(badLinesStruct(pics_done).badlines) & any(~isnan(badLinesStruct(pics_done).badlines))  %#ok<AND2>
             FIG= guidata(1001);
             set(FIG.handles.BadLineEdit, 'string', MakeInputPicString(badLinesStruct(pics_done).badlines));
             screenDataMAT('Badlines_Editcallback');

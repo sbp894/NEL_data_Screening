@@ -128,6 +128,10 @@ FIG.handles.censor_refractory=uicontrol('Parent',FIG.num,'Style','pushbutton','e
     'String',sprintf('remove < refractory'),'Units','normalized','Position',[0.8 figStages.yStage2 0.1 figStages.yHeight2],...
     'Visible','on', 'Backgroundcolor', [.3 0.647 0.841], 'callback', 'screenDataMAT(''censor_refractory'')');
 
+FIG.handles.closeGUI=uicontrol('Parent',FIG.num,'Style','pushbutton',...
+    'String','TCedit','Units','normalized','Position',[.92 figStages.yStage2 0.04 figStages.yHeight2],...
+    'Visible','on', 'Backgroundcolor', [1 .4 .4], 'callback', 'screenDataMAT(''TCedit'')');
+
 %% Y stage 3
 
 FIG.handles.GoToPicTxt=uicontrol('Parent',FIG.num,'Style','text',...
@@ -263,10 +267,20 @@ function FIG=do_tuning_curve(FIG)
 figure(FIG.num);
 subplot(FIG.handles.TC);
 
-[Thresh_dBSPL_ret,BF_kHz_ret,Q10_ret, ~, ~] = plotTCs(FIG.tcPicNum, FIG.calib_PicNum);
-FIG.TCdata.Thresh_dBSPL=Thresh_dBSPL_ret;
-FIG.TCdata.BF_kHz=BF_kHz_ret;
-FIG.TCdata.Q10=Q10_ret;
+[~,~,~,~, allTCdata]= plotTCs(FIG.tcPicNum, FIG.calib_PicNum);
+
+%%
+unit_data= load(sprintf('Unit_%d_%02d.mat', FIG.TrackNum, FIG.UnitNum));
+unit_data= unit_data.data;
+hold on;
+plot(unit_data.BFmod, unit_data.Thresh_dB, 'ro');
+hold off;
+
+FIG.TCdata.all_freq_kHz= allTCdata.freqkHz;
+FIG.TCdata.all_thresh_dB= allTCdata.TCdata;
+FIG.TCdata.Thresh_dBSPL=unit_data.Thresh_dB;
+FIG.TCdata.BF_kHz=unit_data.BFmod;
+FIG.TCdata.Q10=unit_data.Q10_mod;
 
 axes(FIG.handles.TC); % this and the next line required to enable zoom
 zoom(1); % zoom by a factor of 1, dummy value 1 to enable zoom
