@@ -9,9 +9,12 @@
 %
 % Comments:
 % ----------------------------- TO-DO
-% Most time, last line in rate-level function is not complete. So
-% auto-remove
-% 
+% Most times, last line in rate-level function is not complete. So
+% auto-remove. If no ISI violates refractory period, auto censor. Rate
+% plot for badlines: use NaN and add a marker at (x = lineNum, y = 0). See
+% if significant line (60 Hz) in spikes during stimOFF. What's BFcalib in
+% unit data? How is it different from BFmod?
+%
 % ----------------------------- DONE
 % The Q10_level in Unit_*.mat and in plotTCs are different. Fix that.
 % Then addEditTC option in this GUI
@@ -63,7 +66,7 @@ if isfield(FIG, 'calib_PicNum')
     end
 end
 
-
+%% Case structure starts
 if isnumeric(varIN)
     warning on;
     % function that runs when screendataMAT is called the very first time
@@ -94,10 +97,20 @@ if isnumeric(varIN)
     
     addpath(FIG.DataDir);
     
+    all_files_types= {'*tc*', '*SR*', '*RLV*', '*SNRenv*', '*PST*', '*SynCap*', '*DirBased*'};
     cd (FIG.NotUsedDIR);
-    allFiles_notused=[dir('*tc*'); dir('*SR*'); dir('*RLV*'); dir('*SNR*'); dir('*PST*')];
+    allFiles_notused= [];
+    for typeVar= 1:length(all_files_types)
+        allFiles_notused= [allFiles_notused; dir(all_files_types{typeVar})]; %#ok<*AGROW>
+    end
+    
     cd(FIG.DataDir);
-    allFiles_used=[dir('*tc*'); dir('*SR*'); dir('*RLV*'); dir('*SNR*'); dir('*PST*')];
+    allFiles_used= [];
+    for typeVar= 1:length(all_files_types)
+        allFiles_used= [allFiles_used; dir(all_files_types{typeVar})];
+    end
+    
+    
     allFiles=[allFiles_used; allFiles_notused];
     
     picNums=cellfun(@(x) getPicNum(x), {allFiles.name});
@@ -128,11 +141,14 @@ if isnumeric(varIN)
     FIG.progress.picsTotal=length(FIG.picNUMs2GoThrough);
     
     FIG.PICnum=FIG.picNUMs2GoThrough(FIG.progress.picsDone);
-%     TrackUnitNum = getTrackUnit(getFileName_inDir(FIG));
-%     FIG.TrackNum=TrackUnitNum(1);
-%     FIG.UnitNum=TrackUnitNum(2);
+    %     TrackUnitNum = getTrackUnit(getFileName_inDir(FIG));
+    %     FIG.TrackNum=TrackUnitNum(1);
+    %     FIG.UnitNum=TrackUnitNum(2);
     
-    calibFile=dir('*calib*');
+    calibFile=dir('*calib*raw*'); % DataDirs with invCalib
+    if isempty(calibFile)
+        calibFile=dir('*calib*'); % DataDirs without invCalib
+    end
     FIG.all_calib_picNums=cellfun(@(x) getPicNum(x), {calibFile.name});
     FIG.calib_PicNum=FIG.all_calib_picNums(find(FIG.all_calib_picNums<FIG.PICnum, 1, 'last'));
     
@@ -175,11 +191,11 @@ elseif ischar(varIN)
         end
         
     elseif strcmp(subfunName, 'RefreshPic_PBcallback')
-
+        
         TrackUnitNum = getTrackUnit(getFileName_inDir(FIG));
         FIG.TrackNum=TrackUnitNum(1);
         FIG.UnitNum=TrackUnitNum(2);
-
+        
         FIG=ReviewUnitTriggeringMAT(FIG);
         if ~isempty(FIG.badlines(FIG.PICnum).vals)
             set(FIG.handles.BadLineEdit, 'string', MakeInputPicString(FIG.badlines(FIG.PICnum).vals));
@@ -315,7 +331,7 @@ elseif ischar(varIN)
         
     elseif strcmp(subfunName, 'censor_refractory')
         
-%         picSearchString = sprintf('p%04d*.mat', FIG.PICnum);
+        %         picSearchString = sprintf('p%04d*.mat', FIG.PICnum);
         [fileName, dirName]=getFileName_inDir(FIG);
         curFile.name = [dirName fileName];
         
@@ -345,7 +361,7 @@ elseif ischar(varIN)
             fprintf('this file is discarded\n');
         end
         
-        fprintf('Removed spikes violating absolute refractory period for file named %s\n', curFile.name);
+        fprintf('Removed spikes violating absolute refractory period for file named \n \t \t ------> %s\n', curFile.name);
         
         % Refresh the plot ----------------
         guidata(FIG.num, FIG);
@@ -441,6 +457,8 @@ elseif ischar(varIN)
     end
 end
 
+
+%% Case structure ends
 if ~ishandle(FIG.num)
     if isfield(FIG,'badlines')
         %         badLines=FIG.badlines; %#ok<NASGU>
@@ -469,5 +487,5 @@ end
 
 % xlsSummaryData=[ {FIG.ScreeningSummary.filename}', cellstr(num2str([FIG.ScreeningSummary.percentRefractoryViolation]')), {FIG.ScreeningSummary.trigger}' ];
 % xlswrite([FIG.OutputDir 'ScreeningSummary'], xlsSummaryData(:,:));
-xlsSummaryData=FIG.ScreeningSummary; %#ok<NASGU>
+xlsSummaryData=FIG.ScreeningSummary;
 save([FIG.OutputDir 'ScreeningSummary' num2str(FIG.ChinID) '.mat'], 'xlsSummaryData');

@@ -175,13 +175,13 @@ if isfield(PIC.x.Stimuli, 'description')
     titleString = sprintf('picture %s recorded on %s\n%s', ...
         mat2str(PIC.num),...
         PIC.x.General.date, ...
-        PIC.x.Stimuli.description{1});
+        strrep(PIC.x.Stimuli.description{1}, '\', '|'));
 else
     titleString='nothing to show, L122 in PICviewMAT';
 end
 titleString = strrep(titleString, '_', '\_');
 FIG.handles.figBox = axes('Position',[0 0 1 1],'Visible','off');
-text(0.5, 1, titleString, 'Units', 'normalized', 'FontSize', FIG.fontSize-1,...
+text(0.5, 1, titleString, 'Units', 'normalized', 'FontSize', FIG.fontSize+3,...
     'HorizontalAlignment', 'center', 'VerticalAlignment', 'top');
 
 return;
@@ -195,30 +195,50 @@ abs_refractory=.6e-3; % Absolute Refractory Period
 
 %%
 subplot(FIG.handles.raster);
-SpikeINDs=~ismember(PIC.x.spikes{1}(1:end,1)',excludeLines)';
+spikes= PIC.x.spikes{1};
+spikes(isnan(spikes(:,1)), :)= 0;
+SpikeINDs=~ismember(spikes(1:end,1)',excludeLines)';
 
-isi=[inf; diff(PIC.x.spikes{1}(:,2))];
-new_line_index=[1;1+find(diff(PIC.x.spikes{1}(:,1))==1)];
+isi=[inf; diff(spikes(:,2))];
+[lineNum, new_line_index]= unique(spikes(:,1));
+new_line_index(lineNum==0)= [];
 isi(new_line_index)=inf;
 abs_refractory_violation_index= (isi<=abs_refractory);
+
+% To-Do: incomplete
+% now take care of the case when ISI violation is in line and you don't
+% have to remove all spikes. Example. Say a dot= less than refractory
+% period and one | is a spike. So ..|..| is valid, but ..|.| is not. 
+% For the case ..|.|.|, we should remove only the second | not both the
+% second and third spike. Have to do this in a loop. 
+
+% Adjacent violations. 
+ajd_violations= find( abs_refractory_violation_index(2:end)  ==  abs_refractory_violation_index(1:end-1)+1, 1);
+% while ~isempty(ajd_violations)
+%     
+%     ajd_violations= find( abs_refractory_violation_index(2:end)  ==  abs_refractory_violation_index(1:end-1)+1, 1);
+% end
+
 abs_refractory_violation_index2plot= abs_refractory_violation_index & SpikeINDs;
 
 
-plot(PIC.x.spikes{1}(SpikeINDs,2),PIC.x.spikes{1}(SpikeINDs,1), 'k.', 'MarkerSize', 4);
+plot(spikes(SpikeINDs,2),spikes(SpikeINDs,1), 'k.', 'MarkerSize', 4);
 hold on;
-plot(PIC.x.spikes{1}(abs_refractory_violation_index2plot,2),PIC.x.spikes{1}(abs_refractory_violation_index2plot,1), 'rd', 'MarkerSize', 3);
+plot(spikes(abs_refractory_violation_index2plot,2),spikes(abs_refractory_violation_index2plot,1), 'rd', 'MarkerSize', 3);
 percent_less_than_refractory=100*sum(abs_refractory_violation_index2plot)/sum(SpikeINDs);
+
+co= get(gca, 'ColorOrder'); % 1 is blue, 2 is red, 5 is green
 if ~PIC.x.screening.refract_check_tag
-    title(sprintf('Not Censored. %d spikes before refractory (%.2f%%)', sum(abs_refractory_violation_index2plot), percent_less_than_refractory));
+    title(sprintf('Not Censored. %d spikes before refractory (%.2f%%)', sum(abs_refractory_violation_index2plot), percent_less_than_refractory), 'Color', co(2,:));
     FIG.ScreeningSummary(FIG.PICnum).percentRefractoryViolation=percent_less_than_refractory;
 else
-    title(sprintf('Censored. %d spikes before refractory now. Before censoring it was %.2f%%)', sum(abs_refractory_violation_index2plot), PIC.x.screening.refract_violate_percent));
+    title(sprintf('Censored. Before censoring, it was %.2f%%', PIC.x.screening.refract_violate_percent), 'Color', co(1,:));
     FIG.ScreeningSummary(FIG.PICnum).percentRefractoryViolation=PIC.x.screening.refract_violate_percent;
 end
 
 FIG.raster.xmax = (PIC.x.Hardware.Trigger.StmOn + PIC.x.Hardware.Trigger.StmOff) / 1000;
-FIG.raster.ymax = max([max(PIC.x.spikes{1}(:,1)) PIC.x.Stimuli.fully_presented_stimuli])+.5;
-% FIG.raster.ymax = ceil(max(PIC.x.spikes{1}(SpikeINDs,1))/10)*10;
+FIG.raster.ymax = max([max(spikes(:,1)) PIC.x.Stimuli.fully_presented_stimuli])+.5;
+% FIG.raster.ymax = ceil(max(spikes(SpikeINDs,1))/10)*10;
 xlim([0 FIG.raster.xmax]);
 ylim([0 FIG.raster.ymax]);
 set(gca, 'FontSize', FIG.fontSize);
@@ -229,7 +249,7 @@ set(gca, 'TickDir', 'out');
 
 axes(FIG.handles.raster);
 zoom(1);
-
+set(findall(FIG.handles.raster,'-property','FontSize'),'FontSize', 16);
 return;
 
 %% ################################################################################################
@@ -259,6 +279,7 @@ FIG.rate.hx=xlabel('Rate (sp/s)');
 % set(FIG.rate.hx,'units','norm','pos',[-0.2   -0.018         0])
 axes(FIG.handles.rate);
 zoom(1);
+set(findall(FIG.handles.rate,'-property','FontSize'),'FontSize', 16);
 
 return;
 

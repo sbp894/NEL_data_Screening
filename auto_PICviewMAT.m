@@ -205,7 +205,7 @@ FIG.percent_less_than_refractory=percent_less_than_refractory;
 if ~isfield(PIC.x,'percent_less_than_refractory')
     title(sprintf('Not Censored. %d spikes before refractory (%.2f%%)', sum(abs_refractory_violation_index2plot), percent_less_than_refractory));
 else
-    title(sprintf('Censored. %d spikes before refractory now. Before censoring it was %.2f%%)', sum(abs_refractory_violation_index2plot), PIC.x.percent_less_than_refractory));
+    title(sprintf('Censored. Before censoring, it was %.2f%%', PIC.x.percent_less_than_refractory));
 end
 
 FIG.raster.xmax = (PIC.x.Hardware.Trigger.StmOn + PIC.x.Hardware.Trigger.StmOff) / 1000;

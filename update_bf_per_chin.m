@@ -41,7 +41,7 @@ end
 
 cd(DataDir);
 
-allCalibfiles=dir('*calib*');
+allCalibfiles=dir('p*calib*');
 allCalibPicNums= cellfun(@(x) getPicNum(x), {allCalibfiles.name}');
 % fprintf('Using file : %s as calib files\n', allCalibfiles(end).name);
 oldCalibNum= allCalibPicNums(1);
@@ -130,7 +130,8 @@ else
                 pause(.3);
             end
             
-            resp_ThisUnit= questdlg('Already done, redo?', 'BF selection', 'no', 'yes', 'stop', 'no');
+%             resp_ThisUnit= questdlg('Already done, redo?', 'BF selection', 'no', 'yes', 'stop', 'no');
+            resp_ThisUnit= 'yes'
             if ~ismember([data.BFmod data.Thresh_dB], TCdata(:, [1 WhatTCData]), 'rows')
                 resp_ThisUnit= 'doesnot matter, redo';
                 goAhead= true;
@@ -160,14 +161,14 @@ else
                     data.Thresh_dB= TCdata(minInd,WhatTCData);
                     [data.Q10_mod, ~, ~, ~] = findQ10(TCdata(:, 1),TCdata(:, WhatTCData),data.BFmod);
                     %                 questdlg('ok', 'ok', 'ok', 'ok');
-                    % save(allUnitfiles(file_var).name,'data');
-                    %                     fprintf('Saving %s with old values, old BF= %.1f, thresh= %.1f \n', allUnitfiles(file_var).name, data.BFmod, data.Thresh_dB);
+                    save(allUnitfiles(file_var).name,'data');
+                    fprintf('Saving %s with old values, old BF= %.1f, thresh= %.1f \n', allUnitfiles(file_var).name, data.BFmod, data.Thresh_dB);
                 case 'update'
                     data.BFmod=bf_freq;
                     data.Thresh_dB=bf_thresh;
                     [data.Q10_mod, ~, ~, ~] = findQ10(TCdata(:, 1),TCdata(:, WhatTCData),data.BFmod);
-                    %                     save(allUnitfiles(file_var).name,'data');
-                    %                     fprintf('Updated %s, new BF= %.1f, thresh= %.1f \n', allUnitfiles(file_var).name, data.BFmod, data.Thresh_dB);
+                    save(allUnitfiles(file_var).name,'data');
+                    fprintf('Updated %s, new BF= %.1f, thresh= %.1f \n', allUnitfiles(file_var).name, data.BFmod, data.Thresh_dB);
                 case 'manual'
                     checkFlag= true;
                     

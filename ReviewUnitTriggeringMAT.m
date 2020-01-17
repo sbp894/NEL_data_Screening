@@ -75,14 +75,21 @@ else
 end
 
 if isfield(data.General,'run_errors')
-    for i=1:length(data.General.run_errors)
-        if ~sum(strcmp(data.General.run_errors{i}, ...
-                {'In function ''DALinloop_NI_wavfiles'': Input waveform ', ...
-                'has been truncated to fit requested duration. ', ...
-                'has been repeated to fill requested duration. '}))
-            nComLines=nComLines+1;
-            FIG.ComStr=strcat(FIG.ComStr, sprintf('\nRun_errors: %s\n',data.General.run_errors{i}));
+    if numel(data.General.run_errors)<=2
+        for i=1:length(data.General.run_errors)
+            if ~sum(strcmp(data.General.run_errors{i}, ...
+                    {'In function ''DALinloop_NI_wavfiles'': Input waveform ', ...
+                    'has been truncated to fit requested duration. ', ...
+                    'has been repeated to fill requested duration. '}))
+                nComLines=nComLines+1;
+                FIG.ComStr=strcat(FIG.ComStr, sprintf('\nRun_errors: %s\n',data.General.run_errors{i}));
+            end
         end
+    else
+        nComLines=nComLines+1;
+        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nToo many lines in run_error. See command window.\n'));
+        fprintf('Run-Errors for fine %s \n ----------------------------------------\n ', fileCur.name);
+        cellfun(@(x) fprintf('%s\n', x), data.General.run_errors, 'UniformOutput', false)
     end
 end
 
@@ -112,7 +119,7 @@ if checkRASTER
 end
 if isfield(data.Line, 'file')
     filesPlayed=cell2mat(cellfun(@(x) ischar(x), data.Line.file', 'uniformoutput', false));
-    cleanSpeechInds= find(cell2mat(cellfun(@(x) contains(x, '_S_P'), data.Line.file(filesPlayed)', 'uniformoutput', false)), 1);
+    cleanSpeechInds= find(cell2mat(cellfun(@(x) contains(x, {'_S_P', 'RAW_pos'}), data.Line.file(filesPlayed)', 'uniformoutput', false)), 1);
     audio_fName= data.Line.file{cleanSpeechInds};
     audio_fName=strrep(audio_fName, 'C:\NEL\', '');
     audio_fName=strrep(audio_fName, '\', filesep);

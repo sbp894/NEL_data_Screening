@@ -9,10 +9,11 @@ function convert_mfiles_to_matfiles(varargin)
 
 NELDataRepository='/media/parida/DATAPART1/Matlab/ExpData/NelData/';
 MATDataRepository='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
-if ~isdir(MATDataRepository)
+if ~isfolder(MATDataRepository)
     mkdir(MATDataRepository);
 end
 
+skip_pFile_if_aExists= 0;
 
 if nargin==0
     allDataDir{1}=uigetdir(NELDataRepository);
@@ -63,20 +64,28 @@ for dirVar=1:length(allDataDir)
         if strcmp(mfilename(1),'.') % Don't copy system dirs
             %root dirs
         elseif strcmp(mfilename(end-1:end),'.m') % Copy data
-            if strcmp(mfilename(1), 'a') % for average files in FFR
-                try
-                    eval( strcat('data = ',mfilename(1:length(mfilename)-2),';'));
-                    matfilename=[OutDir mfilename(1:end-1) 'mat'];
-                    save(matfilename,'data');
-                catch
-                    fprintf('%s is odd\n', mfilename);
-                end
-            else % else p* files, check if there's an a-file with the same name. Since ffr files are really big, skip these p files that have a-file.
-                picNum= str2double(mfilename(2:5));
-                if isempty(dir(sprintf('a%04d*', picNum)))
-                    eval( strcat('data = ',mfilename(1:length(mfilename)-2),';'));
-                    matfilename=[OutDir mfilename(1:end-1) 'mat'];
-                    save(matfilename,'data');
+            matfilename=[OutDir mfilename(1:end-1) 'mat'];
+            if ~exist(matfilename, 'file')
+                if strcmp(mfilename(1), 'a') % for average files in FFR
+                    try
+                        data= parload(mfilename);
+                        parsave(matfilename, data);
+                    catch
+                        fprintf('%s is odd\n', mfilename);
+                    end
+                else
+                    if skip_pFile_if_aExists
+                        % else p* files, check if there's an a-file with the same name. Since ffr files are really big, skip these p files that have a-file.
+                        picNum= str2double(mfilename(2:5));
+                        if isempty(dir(sprintf('a%04d*', picNum)))
+                            data= parload(mfilename);
+                            parsave(matfilename, data);
+                        end
+                    else
+                        data= parload(mfilename);
+                        parsave(matfilename, data);
+                        
+                    end
                 end
             end
         elseif allfiles(file_var).isdir  % Copy directories
@@ -88,4 +97,13 @@ for dirVar=1:length(allDataDir)
     
     cd(CodesDir);
     fprintf('-----%s is \n \t \t saved in %s\n',DataDir, OutDir);
+end
+end
+
+function parsave(matfilename, data)
+save(matfilename,'data');
+end
+
+function data= parload(mfilename) %#ok<STOUT>
+eval(strcat('data = ', mfilename(1:length(mfilename)-2),';'));
 end

@@ -39,7 +39,10 @@ end
 
 cd(DataDir);
 
-allCalibfiles=dir('*calib*');
+allCalibfiles=dir('*calib*raw*'); % for dataDirs after Sep 2019
+if isempty(allCalibfiles)
+    allCalibfiles=dir('*calib*'); % for dataDirs before Sep 2019
+end
 fprintf('Using file : %s as calib files\n', allCalibfiles(end).name);
 x=load(allCalibfiles(end).name);
 CalibData=x.data.CalibData(:,1:2);

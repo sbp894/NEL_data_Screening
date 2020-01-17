@@ -22,7 +22,7 @@ if ~exist('old_bad_data', 'var')
 end
 do_save =1;
 %% Different files have different structure format
-if ~isempty(old_bad_data) 
+if ~isempty(old_bad_data)
     if isequal(new_BadLines, old_bad_data.BadLines)
         fprintf('-------- Nothing to update, same badlines \n');
         return;
@@ -82,7 +82,7 @@ elseif contains(curFile.name, '_RLV')
     %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
     data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
     
-elseif contains(curFile.name, '_SNRenv')
+elseif contains(curFile.name, {'_SNRenv', '_DirBased', '_SynCap'})
     % reset all old_badlines
     if ~isempty(old_bad_data)
         old_BadLines= old_bad_data.BadLines;
