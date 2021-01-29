@@ -41,12 +41,17 @@ end
 
 cd(DataDir);
 
-allCalibfiles=dir('p*calib*');
+allCalibfiles=dir('p*calib*raw*');
+if isempty(allCalibfiles)
+    allCalibfiles=dir('p*calib*');
+end
+
+
 allCalibPicNums= cellfun(@(x) getPicNum(x), {allCalibfiles.name}');
 % fprintf('Using file : %s as calib files\n', allCalibfiles(end).name);
 oldCalibNum= allCalibPicNums(1);
-x_tc=load(allCalibfiles(allCalibPicNums(1)).name);
-CalibData=x_tc.data.CalibData(:,1:2);
+x_calib=load(allCalibfiles(allCalibPicNums(1)).name);
+CalibData= x_calib.data.CalibData(:,1:2);
 
 allTCfiles=dir('*tc*');
 allUnitfiles=dir('Unit*');

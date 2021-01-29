@@ -16,7 +16,7 @@ elseif nargin==1
     picNums(1)= input('First file to merge?');
     picNums(2)= input('Second file to merge?');
 else 
-    temp=dir(sprintf('%s*%d*', MATDataRepository, chinID));
+    temp=dir(sprintf('%s*%d*AN*', MATDataRepository, chinID));
     DataDir=[MATDataRepository temp.name filesep];
 end
 

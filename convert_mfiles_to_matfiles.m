@@ -13,7 +13,7 @@ if ~isfolder(MATDataRepository)
     mkdir(MATDataRepository);
 end
 
-skip_pFile_if_aExists= 0;
+skip_pFile_if_aExists= 1;
 
 if nargin==0
     allDataDir{1}=uigetdir(NELDataRepository);
@@ -23,7 +23,7 @@ else
     for chinVar=1:length(chinIDs)
         curChinID=chinIDs(chinVar);
         checkDIR=dir(sprintf('%s*Q%d*',NELDataRepository,curChinID));
-        if isempty(checkDIR)
+        if isempty(checkDIR)  
             error('No such directory for animal number %d',ChinID);
         elseif length(checkDIR)~=1
             fprintf('Multiple directories found.\n');
@@ -56,42 +56,42 @@ for dirVar=1:length(allDataDir)
     allfiles=dir();
     
     for file_var=1:length(allfiles)
-        mfilename=allfiles(file_var).name;
-        if length(mfilename)>60
+        filename=allfiles(file_var).name;
+        if length(filename)>60
             disp('wait');
         end
         
-        if strcmp(mfilename(1),'.') % Don't copy system dirs
+        if strcmp(filename(1),'.') % Don't copy system dirs
             %root dirs
-        elseif strcmp(mfilename(end-1:end),'.m') % Copy data
-            matfilename=[OutDir mfilename(1:end-1) 'mat'];
+        elseif strcmp(filename(end-1:end),'.m') % Copy data
+            matfilename=[OutDir filename(1:end-2) '.mat'];
             if ~exist(matfilename, 'file')
-                if strcmp(mfilename(1), 'a') % for average files in FFR
+                if strcmp(filename(1), 'a') % for average files in FFR
                     try
-                        data= parload(mfilename);
+                        data= parload(filename);
                         parsave(matfilename, data);
                     catch
-                        fprintf('%s is odd\n', mfilename);
+                        fprintf('%s is odd\n', filename);
                     end
                 else
                     if skip_pFile_if_aExists
                         % else p* files, check if there's an a-file with the same name. Since ffr files are really big, skip these p files that have a-file.
-                        picNum= str2double(mfilename(2:5));
+                        picNum= str2double(filename(2:5));
                         if isempty(dir(sprintf('a%04d*', picNum)))
-                            data= parload(mfilename);
+                            data= parload(filename);
                             parsave(matfilename, data);
                         end
                     else
-                        data= parload(mfilename);
+                        data= parload(filename);
                         parsave(matfilename, data);
                         
                     end
                 end
             end
         elseif allfiles(file_var).isdir  % Copy directories
-            copyfile(mfilename,[OutDir mfilename filesep]);
+            copyfile(filename,[OutDir filename filesep]);
         else % Copy other files
-            copyfile(mfilename,OutDir);
+            copyfile(filename, OutDir);
         end
     end
     
