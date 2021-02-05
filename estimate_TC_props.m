@@ -69,9 +69,11 @@ mrkSize2= 3;
 mrkSize3= 4;
 mrkSize4= 5;
 
-hold on;
-plot(freq, tc_data, '-', 'linew', lw2, 'marker', '.', 'markersize', mrkSize);
-plot(freq(locs), tc_data(locs), '*g', 'linew', lw4, 'markersize', mrkSize2);
+if plotYes
+    hold on;
+    plot(freq, tc_data, '-', 'linew', lw2, 'marker', '.', 'markersize', mrkSize);
+    plot(freq(locs), tc_data(locs), '*g', 'linew', lw4, 'markersize', mrkSize2);
+end
 
 % remove all points with thresh above (maxMisMatch above min thresh).
 locs(tc_data(locs)>min(tc_data(locs))+maxMisMatch)=[];
@@ -84,7 +86,10 @@ for candVar= 1:length(locs)-1
 end
 
 locs(isnan(locs))=[];
-plot(freq(locs), tc_data(locs), 'oc', 'linew', lw4, 'markersize', mrkSize3);
+if plotYes
+    plot(freq(locs), tc_data(locs), 'oc', 'linew', lw4, 'markersize', mrkSize3);
+end
+
 slopesVals= nan(length(locs),1);
 nPointsForHFslope= nan(length(locs),1);
 for candVar=length(locs):-1:1 % backwards because the last candidate is the most probable, and has a red * => second line should be red
@@ -96,8 +101,10 @@ for candVar=length(locs):-1:1 % backwards because the last candidate is the most
     slopesVals(candVar)= theta(3);
     nPointsForHFslope(candVar)= numPointsSlope1;
     
-    plot(freq(inds2use), tc_data(inds2use), 'k--', 'linew', lw2);
-    plot(freq(inds2use), yFit, 'linew', lw3);
+    if plotYes
+        plot(freq(inds2use), tc_data(inds2use), 'k--', 'linew', lw2);
+        plot(freq(inds2use), yFit, 'linew', lw3);
+    end
 end
 
 
@@ -158,5 +165,3 @@ else
     bf_freq= nan;
     bf_thresh= nan;
 end
-
-ylim([-10 1.05*max(tc_data)]);

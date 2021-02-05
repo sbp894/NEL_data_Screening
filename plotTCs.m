@@ -88,7 +88,7 @@ for ind=1:numTCs
         unitData= load(trackUnit_fName);
         unitData= unitData.data;
         BF_kHz=unitData.BFmod;
-        Thresh_dBSPL=unitData.Thresh_dB;
+        Thresh_dBSPL=unitData.Thresh_dB_mod;
     else
         BF_kHz=tempTCdata.Thresh.BF;
         Thresh_dBSPL=curTCdata(curTCdata(:,1)==BF_kHz,3);
