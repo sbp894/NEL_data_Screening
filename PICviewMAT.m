@@ -293,15 +293,20 @@ subplot(FIG.handles.TC);
 %%
 unit_data= load(sprintf('Unit_%d_%02d.mat', FIG.TrackNum, FIG.UnitNum));
 unit_data= unit_data.data;
+
+if ~isfield(unit_data, 'Thresh_dB_mod')
+    error('First run FTCscreening() for this animal');
+end
+
 hold on;
-plot(unit_data.BFmod, unit_data.Thresh_dB, 'ro');
+plot(unit_data.BFmod, unit_data.Thresh_dB_mod, 'ro');
 hold off;
 
 FIG.TCdata.all_freq_kHz= allTCdata.freqkHz;
 FIG.TCdata.all_thresh_dB= allTCdata.TCdata;
-FIG.TCdata.Thresh_dBSPL=unit_data.Thresh_dB;
+FIG.TCdata.Thresh_dBSPL=unit_data.Thresh_dB_mod;
 FIG.TCdata.BF_kHz=unit_data.BFmod;
-FIG.TCdata.Q10=unit_data.Q10_mod;
+FIG.TCdata.Q10=unit_data.Q10_local_mod;
 
 axes(FIG.handles.TC); % this and the next line required to enable zoom
 zoom(1); % zoom by a factor of 1, dummy value 1 to enable zoom

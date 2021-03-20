@@ -55,6 +55,32 @@ if contains(curFile.name, '_SR')
     %     data.Stimuli.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
     %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
     data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
+
+elseif contains(curFile.name, '_PST')
+    % reset all old_badlines
+    if ~isempty(old_bad_data)
+        old_BadLines= old_bad_data.BadLines;
+        old_badInds= old_bad_data.badInds;
+        
+        data.Line.attens.Tone(old_BadLines,:)=old_bad_data.Line.attens.Tone;
+        data.spikes{1}(old_badInds,:)=old_bad_data.spikes;
+    end
+    
+    % then update new bad_inds
+    badInds= ismember(data.spikes{1}(:,1), new_BadLines);
+    
+    data.bad_data.BadLines= new_BadLines;
+    data.bad_data.badInds= badInds;
+    
+    data.bad_data.Line.attens.Tone= data.Line.attens.Tone(new_BadLines,:);
+    data.Line.attens.Tone(new_BadLines,:)=nan;
+    
+    data.bad_data.spikes= data.spikes{1}(badInds,:);
+    data.spikes{1}(badInds,:)=nan;
+    
+    %     data.Stimuli.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
+    %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
+    data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
     
 elseif contains(curFile.name, '_RLV')
     % reset all old_badlines
@@ -123,51 +149,51 @@ else
     warning('Haven''t figured out how to remove badlines for this pic-file type\n');
 end
 
-if false
-    for lineVar=1:length(new_BadLines)
-        lineNum=new_BadLines(lineVar);
-        
-        if contains(curFile.name, '_SR')
-            % SR
-            %         data.Line.attens.None(lineNum,:)=nan;
-            %         badline_spike_inds= data.spikes{1}(:,1)==lineNum;
-            %         if sum(badline_spike_inds)
-            %             data.spikes{1}(badline_spike_inds,:)=nan;
-            %         end
-        elseif contains(curFile.name, '_RLV') % RLF
-            %         if lineVar==1 % Need to do it once, so the first time
-            %             data.Stimuli.fully_presented_stimuli=data.Stimuli.fully_presented_stimuli-length(badlines(PICnum).vals);
-            %             data.Stimuli.fully_presented_lines=data.Stimuli.fully_presented_lines-length(badlines(PICnum).vals);
-            %         end
-            %         data.Line.attens.Tone(lineNum,:)=nan;
-            %         badline_spike_inds= data.spikes{1}(:,1)==lineNum;
-            %         if sum(badline_spike_inds)
-            %             data.spikes{1}(badline_spike_inds,:)=nan;
-            %         end
-            
-        elseif contains(curFile.name, '_SNRenv') % RLF
-            %         if lineVar==1 % Need to do it once, so the first time
-            %             data.Stimuli.fully_presented_stimuli=data.Stimuli.fully_presented_stimuli-length(badlines(PICnum).vals);
-            %             data.Stimuli.fully_presented_lines=data.Stimuli.fully_presented_lines-length(badlines(PICnum).vals);
-            %         end
-            %         data.Line.attens.list(lineNum,:)=nan;
-            data.Line.file{lineNum}=nan;
-            data.Line.playback_sampling_rate(lineNum)=nan;
-            
-            %         badline_spike_inds= data.spikes{1}(:,1)==lineNum;
-            %         if sum(badline_spike_inds)
-            %             data.spikes{1}(badline_spike_inds,:)=nan;
-            %         end
-            
-        else
-            % Do nothing.
-            do_save= 0;
-            warning('Haven''t figured out how to remove badlines for this pic-file type\n');
-        end
-        
-    end
-end
-
+% % % if false
+% % %     for lineVar=1:length(new_BadLines)
+% % %         lineNum=new_BadLines(lineVar);
+% % %
+% % %         if contains(curFile.name, '_SR')
+% % %             % SR
+% % %             %         data.Line.attens.None(lineNum,:)=nan;
+% % %             %         badline_spike_inds= data.spikes{1}(:,1)==lineNum;
+% % %             %         if sum(badline_spike_inds)
+% % %             %             data.spikes{1}(badline_spike_inds,:)=nan;
+% % %             %         end
+% % %         elseif contains(curFile.name, '_RLV') % RLF
+% % %             %         if lineVar==1 % Need to do it once, so the first time
+% % %             %             data.Stimuli.fully_presented_stimuli=data.Stimuli.fully_presented_stimuli-length(badlines(PICnum).vals);
+% % %             %             data.Stimuli.fully_presented_lines=data.Stimuli.fully_presented_lines-length(badlines(PICnum).vals);
+% % %             %         end
+% % %             %         data.Line.attens.Tone(lineNum,:)=nan;
+% % %             %         badline_spike_inds= data.spikes{1}(:,1)==lineNum;
+% % %             %         if sum(badline_spike_inds)
+% % %             %             data.spikes{1}(badline_spike_inds,:)=nan;
+% % %             %         end
+% % %
+% % %         elseif contains(curFile.name, '_SNRenv') % RLF
+% % %             %         if lineVar==1 % Need to do it once, so the first time
+% % %             %             data.Stimuli.fully_presented_stimuli=data.Stimuli.fully_presented_stimuli-length(badlines(PICnum).vals);
+% % %             %             data.Stimuli.fully_presented_lines=data.Stimuli.fully_presented_lines-length(badlines(PICnum).vals);
+% % %             %         end
+% % %             %         data.Line.attens.list(lineNum,:)=nan;
+% % %             data.Line.file{lineNum}=nan;
+% % %             data.Line.playback_sampling_rate(lineNum)=nan;
+% % %
+% % %             %         badline_spike_inds= data.spikes{1}(:,1)==lineNum;
+% % %             %         if sum(badline_spike_inds)
+% % %             %             data.spikes{1}(badline_spike_inds,:)=nan;
+% % %             %         end
+% % %
+% % %         else
+% % %             % Do nothing.
+% % %             do_save= 0;
+% % %             warning('Haven''t figured out how to remove badlines for this pic-file type\n');
+% % %         end
+% % %
+% % %     end
+% % % end
+% % %
 
 %% SNRenv
 if do_save

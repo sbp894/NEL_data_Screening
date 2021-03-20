@@ -191,4 +191,4 @@ end
 
 
 cd(CodesDir);
-update_bf_per_chin(ChinNum);
+% update_bf_per_chin(ChinNum);
