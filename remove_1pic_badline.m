@@ -107,8 +107,34 @@ elseif contains(curFile.name, '_RLV')
     %     data.Stimuli.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
     %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
     data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
+
+elseif contains(curFile.name, '_BBNrlvQ')
+    % reset all old_badlines
+    if ~isempty(old_bad_data)
+        old_BadLines= old_bad_data.BadLines;
+        old_badInds= old_bad_data.badInds;
+        
+        data.Line.attens.list(old_BadLines,:)=old_bad_data.Line.attens.list;
+        data.spikes{1}(old_badInds,:)=old_bad_data.spikes;
+    end
     
-elseif contains(curFile.name, {'_SNRenv', '_DirBased', '_SynCap'})
+    % then update new bad_inds
+    badInds= ismember(data.spikes{1}(:,1), new_BadLines);
+    
+    data.bad_data.BadLines= new_BadLines;
+    data.bad_data.badInds= badInds;
+    
+    data.bad_data.Line.attens.list= data.Line.attens.list(new_BadLines,:);
+    data.Line.attens.list(new_BadLines,:)=nan;
+    
+    data.bad_data.spikes= data.spikes{1}(badInds,:);
+    data.spikes{1}(badInds,:)=nan;
+    
+    %     data.Stimuli.fully_presented_stimuli= length(unique(data.spikes{1}(~isnan(data.spikes{1}(:,1)),1)));
+    %     data.Stimuli.fully_presented_lines= data.Stimuli.fully_presented_stimuli;
+    data.bad_data.fully_presented_stimuli= data.Stimuli.fully_presented_stimuli - length(new_BadLines);
+    
+elseif contains(curFile.name, {'_SNRenv', '_DirBased', '_SynCap', '_BBNlong'})
     % reset all old_badlines
     if ~isempty(old_bad_data)
         old_BadLines= old_bad_data.BadLines;

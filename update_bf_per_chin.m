@@ -125,10 +125,10 @@ else
         
         linHan(1)= plot(BF_kHz(file_var,3), TCdata(dsearchn(TCdata(:,1), BF_kHz(file_var,3)), rawTCdata_point),'bd' ,'markersize',MarkerSize2, 'linew', lwIndicators);
         
-        linHan(2)= plot(BF_kHz(file_var,4), thresh_org_upd_man(file_var,1),'x', 'color', get_color('g') ,'markersize',MarkerSize2, 'linew', lwIndicators);
+        linHan(2)= plot(BF_kHz(file_var,4), thresh_org_upd_man(file_var,1),'x', 'color', 'g' ,'markersize',MarkerSize2, 'linew', lwIndicators);
         [Q10_org_upd_man(file_var,1), frhi_org, frlo_org, Q10lev_org] = findQ10(TCdata(:, 1), TCdata(:, calib_corr_TCData_point), BF_kHz(file_var,4));
-        linHan(3)= plot( [frhi_org, frlo_org], [Q10lev_org Q10lev_org], '-.', 'color', get_color('g'), 'linew', lwData);
-        linHan(4)= text(frlo_org, Q10lev_org+5, sprintf('Q_1_0 (org)=%.1f', Q10_org_upd_man(file_var,1)), 'Color', get_color('g'), 'FontSize', fSize_est);
+        linHan(3)= plot( [frhi_org, frlo_org], [Q10lev_org Q10lev_org], '-.', 'color', 'g', 'linew', lwData);
+        linHan(4)= text(frlo_org, Q10lev_org+5, sprintf('Q_1_0 (org)=%.1f', Q10_org_upd_man(file_var,1)), 'Color', 'g', 'FontSize', fSize_est);
         
         
         linHan(5)= plot(BF_kHz(file_var,5), thresh_org_upd_man(file_var,2),'+r' ,'markersize',MarkerSize2, 'linew', lwIndicators);

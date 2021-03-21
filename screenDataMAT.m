@@ -97,7 +97,7 @@ if isnumeric(varIN)
     
     addpath(FIG.DataDir);
     
-    all_files_types= {'*tc*', '*SR*', '*RLV*', '*SNRenv*', '*PST*', '*SynCap*', '*DirBased*'};
+    all_files_types= {'*tc*', '*SR*', '*RLV*', '*SNRenv*', '*PST*', '*SynCap*', '*DirBased*', '*BBN*'};
     cd (FIG.NotUsedDIR);
     allFiles_notused= [];
     for typeVar= 1:length(all_files_types)

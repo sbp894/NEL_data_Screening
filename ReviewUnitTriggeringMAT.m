@@ -120,17 +120,19 @@ end
 if isfield(data.Line, 'file')
     filesPlayed=cell2mat(cellfun(@(x) ischar(x), data.Line.file', 'uniformoutput', false));
     cleanSpeechInds= find(cell2mat(cellfun(@(x) contains(x, {'_S_P', 'RAW_pos'}), data.Line.file(filesPlayed)', 'uniformoutput', false)), 1);
-    audio_fName= data.Line.file{cleanSpeechInds};
-    audio_fName=strrep(audio_fName, 'C:\NEL\', '');
-    audio_fName=strrep(audio_fName, '\', filesep);
-    audio_fName=strrep(audio_fName, ' ', ''); %remove blankspace at the end
-    if exist(audio_fName, 'file')
-        calib_fName=getFileName(FIG.calib_PicNum);
-        plotYes=0;
-        verbose=0;
-        [filteredSPL, ~]=CalibFilter_outSPL(audio_fName, calib_fName, plotYes, verbose);
-        FIG.dB_SPL= filteredSPL-data.Line.attens.list(find(cleanSpeechInds, 1 ), 2);
-        FIG.ComStr=strcat(FIG.ComStr, sprintf('\nIntensity= %.1f dB SPL', FIG.dB_SPL));
+    if ~isempty(cleanSpeechInds) % works only for speech stims that SP played 
+        audio_fName= data.Line.file{cleanSpeechInds};
+        audio_fName=strrep(audio_fName, 'C:\NEL\', '');
+        audio_fName=strrep(audio_fName, '\', filesep);
+        audio_fName=strrep(audio_fName, ' ', ''); %remove blankspace at the end
+        if exist(audio_fName, 'file')
+            calib_fName=getFileName(FIG.calib_PicNum);
+            plotYes=0;
+            verbose=0;
+            [filteredSPL, ~]=CalibFilter_outSPL(audio_fName, calib_fName, plotYes, verbose);
+            FIG.dB_SPL= filteredSPL-data.Line.attens.list(find(cleanSpeechInds, 1 ), 2);
+            FIG.ComStr=strcat(FIG.ComStr, sprintf('\nIntensity= %.1f dB SPL', FIG.dB_SPL));
+        end
     end
 end
 set(FIG.handles.Comments, 'MAX', nComLines);
