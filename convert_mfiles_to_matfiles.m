@@ -7,8 +7,10 @@
 %%
 function convert_mfiles_to_matfiles(varargin)
 
-NELDataRepository='/media/parida/DATAPART1/Matlab/ExpData/NelData/';
-MATDataRepository='/media/parida/DATAPART1/Matlab/ExpData/MatData/';
+NELDataRepository='D:\Matlab\KenANFdata_mfiles/';
+MATDataRepository='D:\Matlab\KenANFdata_matfiles/';
+
+
 if ~isfolder(MATDataRepository)
     mkdir(MATDataRepository);
 end
